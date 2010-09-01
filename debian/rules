@@ -1,0 +1,52 @@
+#!/usr/bin/make -f
+# -*- mode: makefile -*-
+
+DH_VERBOSE=1
+DEB_PYTHON_SYSTEM := pysupport
+
+PYVERS=$(shell pyversions -vs)
+
+build: $(PYVERS:%=build-python%) docs
+	touch $@
+build-python%:
+	dh_testdir
+	python$* setup.py build
+	touch $@
+
+docs:
+	make docs
+
+clean:
+	dh_testdir
+	rm -rf build build-python* debian/python-pyaudio* debian/files docs
+	rm -rf src/*.pyc MANIFEST
+	dh_clean
+
+
+install: build $(PYVERS:%=install-python%) install-docbase
+install-python%:
+	python$* setup.py install --install-layout=deb --root=$(CURDIR)/debian/python-pyaudio
+
+install-docbase:
+	mkdir -p $(CURDIR)/debian/python-pyaudio/usr/share/doc-base/
+	cp $(CURDIR)/debian/docbase $(CURDIR)/debian/python-pyaudio/usr/share/doc-base/python-pyaudio
+
+binary: binary-arch binary-indep
+# Nothing to do...
+binary-indep:
+binary-arch: build install
+	dh_testdir
+	dh_testroot
+	dh_installdocs
+	dh_installchangelogs CHANGELOG
+	dh_installexamples
+	dh_compress -X.js -X.py
+	dh_strip
+	dh_fixperms
+	dh_pysupport
+	dh_installdeb
+	dh_shlibdeps
+	dh_gencontrol
+	dh_md5sums
+	dh_builddeb
+

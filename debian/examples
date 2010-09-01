@@ -1,0 +1,6 @@
+test/error.py
+test/play_wave.py
+test/record.py
+test/system_info.py
+test/wire2.py
+test/wire.py
