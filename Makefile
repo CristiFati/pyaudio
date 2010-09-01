@@ -37,3 +37,5 @@ docs:
 ######################################################################
 tarball: docs $(SRCFILES) MANIFEST.in
 	@python setup.py sdist
+
+include bdist.mk

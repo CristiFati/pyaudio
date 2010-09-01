@@ -53,6 +53,7 @@ if "--static-link" in sys.argv:
     sys.argv.remove("--static-link")
 
 portaudio_path = os.environ.get("PORTAUDIO_PATH", "./portaudio-v19")
+packaging_path = os.environ.get("PACKAGING_PATH", None)
 
 pyaudio_module_sources = ['src/_portaudiomodule.c']
 
@@ -94,6 +95,8 @@ if STATIC_LINKING:
         # run: python setup.py build -cmingw32
         external_libraries += ['winmm']
         extra_link_args += ['-lwinmm']
+        if packaging_path:
+            scripts += [os.path.join(packaging_path, 'postinst.py')]
 
     elif sys.platform == 'linux2':
         external_libraries += ['rt', 'm', 'pthread']
