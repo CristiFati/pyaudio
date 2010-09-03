@@ -20,3 +20,18 @@ NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
 LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+The upstream PyAudio source is available at:
+
+git:      http://people.csail.mit.edu/hubert/git/pyaudio.git
+homepage: http://people.csail.mit.edu/hubert/pyaudio/
+
+The original PyAudio author is: Hubert Pham <hubert@mit.edu>.
+
+The Debian packaging of PyAudio is also distributed under the
+MIT license.
+
+Debian package maintainers include:
+  Hubert Pham <hubert@mit.edu>
+  Felipe Sateler <fsateler@debian.org>
+  Justin Mazzola Paluska <jmp@mit.edu>
