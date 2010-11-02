@@ -1,6 +1,8 @@
 #!/usr/bin/make -f
 # -*- mode: makefile -*-
 
+SPACE := 
+SPACE +=
 DH_VERBOSE=1
 DEB_PYTHON_SYSTEM := pysupport
 
@@ -13,8 +15,8 @@ build-python%:
 	python$* setup.py build
 	touch $@
 
-docs:
-	make docs
+docs: $(PYVERS:%=build-python%)
+	PYTHONPATH=$(subst $(SPACE),:,$(abspath $(wildcard build/lib*))) make docs
 
 clean:
 	dh_testdir
