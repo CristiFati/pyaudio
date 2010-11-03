@@ -1,3 +1,10 @@
+python-pyaudio (0.2.4-2) unstable; urgency=low
+
+  * Add python-docutils to Build-Depends.
+  * Generate documentation against built portaudio module.
+
+ -- Hubert Pham <hubert@mit.edu>  Tue, 02 Nov 2010 23:16:00 -0500
+
 python-pyaudio (0.2.4-1) UNRELEASED; urgency=low
 
   [ Felipe Sateler ]
