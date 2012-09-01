@@ -78,6 +78,9 @@ else:
 if sys.platform == 'darwin':
     defines += [('MACOSX', '1')]
 
+    extra_compile_args += ["-mmacosx-version-min=10.6"]
+    extra_link_args += ["-mmacosx-version-min=10.6"]
+
     if mac_sysroot_path:
         extra_compile_args += ["-isysroot", mac_sysroot_path]
         extra_link_args += ["-isysroot", mac_sysroot_path]
