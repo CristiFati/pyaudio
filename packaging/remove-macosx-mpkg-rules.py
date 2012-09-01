@@ -25,14 +25,14 @@ def main():
     (options, args) = parser.parse_args()
 
     if not options.input:
-        print "No input given."
+        print("No input given.")
         parser.print_help()
         return -1
 
     try:
         dom = parse(options.input)
-    except Exception, err:
-        print "Error: ", err
+    except Exception as err:
+        print("Error: ", err)
         return -1
 
     # XML looks something like this:
@@ -80,14 +80,14 @@ def main():
     if options.output:
         try:
             f = open(options.output, "w")
-        except IOError, err:
-            print "Error: ", err
+        except IOError as err:
+            print("Error: ", err)
             return -1
 
         f.write(xml)
         f.close()
     else:
-        print xml
-    
+        print(xml)
+
 if __name__ == "__main__":
     sys.exit(main())
