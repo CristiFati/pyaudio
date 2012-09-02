@@ -1,3 +1,15 @@
+python-pyaudio (0.2.6-1) unstable; urgency=low
+
+  * Add support for Python 3.
+
+ -- Hubert Pham <hubert@mit.edu>  Sat, 02 Sep 2012 20:00:00 -0500
+
+python-pyaudio (0.2.5-1) UNRELEASED; urgency=low
+
+  * Add support for callback (non-blocking) operation.
+
+ -- Hubert Pham <hubert@mit.edu>  Sat, 02 Sep 2012 20:00:00 -0500
+
 python-pyaudio (0.2.4-2) unstable; urgency=low
 
   * Add python-docutils to Build-Depends.
