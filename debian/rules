@@ -7,31 +7,42 @@ DH_VERBOSE=1
 DEB_PYTHON_SYSTEM := pysupport
 
 PYVERS=$(shell pyversions -vs)
+PY3VERS=$(shell py3versions -vs)
 
-build: $(PYVERS:%=build-python%) docs
+build: $(PYVERS:%=build-python%) $(PY3VERS:%=build-python%) docs
 	touch $@
 build-python%:
 	dh_testdir
 	python$* setup.py build
-	touch $@
 
 docs: $(PYVERS:%=build-python%)
 	PYTHONPATH=$(subst $(SPACE),:,$(abspath $(wildcard build/lib*))) make docs
 
 clean:
 	dh_testdir
-	rm -rf build build-python* debian/python-pyaudio* debian/files docs
+	rm -rf build build-python* debian/python-pyaudio debian/python3-pyaudio debian/files docs
 	rm -rf src/*.pyc MANIFEST
 	dh_clean
 
 
-install: build $(PYVERS:%=install-python%) install-docbase
-install-python%:
-	python$* setup.py install --install-layout=deb --root=$(CURDIR)/debian/python-pyaudio
+install: build install-python install-python3 install-docbase
+
+install-python:
+	python$(PYVERS) setup.py install --install-layout=deb --root=$(CURDIR)/debian/python-pyaudio
+
+install-python3:
+	python$(PY3VERS) setup.py install --install-layout=deb --root=$(CURDIR)/debian/python3-pyaudio
+
+
+install-docbase: install-docbase install-docbase3
 
 install-docbase:
 	mkdir -p $(CURDIR)/debian/python-pyaudio/usr/share/doc-base/
-	cp $(CURDIR)/debian/docbase $(CURDIR)/debian/python-pyaudio/usr/share/doc-base/python-pyaudio
+	cp $(CURDIR)/debian/python-pyaudio.doc-base $(CURDIR)/debian/python-pyaudio/usr/share/doc-base/python-pyaudio
+
+install-docbase3:
+	mkdir -p $(CURDIR)/debian/python3-pyaudio/usr/share/doc-base/
+	cp $(CURDIR)/debian/python3-pyaudio.doc-base $(CURDIR)/debian/python3-pyaudio/usr/share/doc-base/python3-pyaudio
 
 binary: binary-arch binary-indep
 # Nothing to do...
@@ -42,13 +53,13 @@ binary-arch: build install
 	dh_installdocs
 	dh_installchangelogs CHANGELOG
 	dh_installexamples
+	dh_python2
+	dh_python3
 	dh_compress -X.js -X.py
 	dh_strip
 	dh_fixperms
-	dh_pysupport
 	dh_installdeb
 	dh_shlibdeps
 	dh_gencontrol
 	dh_md5sums
 	dh_builddeb
-

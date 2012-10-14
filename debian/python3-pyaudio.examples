@@ -1,0 +1,8 @@
+test/error.py
+test/play_wave.py
+test/play_wave_callback.py
+test/record.py
+test/system_info.py
+test/wire_callback.py
+test/wire_full.py
+test/wire_half.py

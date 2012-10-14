@@ -2,7 +2,7 @@ python-pyaudio (0.2.6-1) unstable; urgency=low
 
   * Add support for Python 3.
 
- -- Hubert Pham <hubert@mit.edu>  Sat, 02 Sep 2012 20:00:00 -0500
+ -- Hubert Pham <hubert@mit.edu>  Sat, 02 Sep 2012 21:00:00 -0500
 
 python-pyaudio (0.2.5-1) UNRELEASED; urgency=low
 
