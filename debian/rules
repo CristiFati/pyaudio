@@ -3,63 +3,26 @@
 
 SPACE := 
 SPACE +=
-DH_VERBOSE=1
-DEB_PYTHON_SYSTEM := pysupport
 
-PYVERS=$(shell pyversions -vs)
-PY3VERS=$(shell py3versions -vs)
+PYVERS := $(shell pyversions -vs) $(shell py3versions -vs)
 
-build: $(PYVERS:%=build-python%) $(PY3VERS:%=build-python%) docs
-	touch $@
+PYTHONPATH=$(subst $(SPACE),:,$(abspath $(wildcard build/lib*)))
+
+%:
+	dh $@ --with python2,python3
+
+override_dh_auto_build: $(PYVERS:%=build-python%)
+	PYTHONPATH=$(PYTHONPATH) make docs
+
+# This has to be in a separate target otherwise
+# make gets confused and executes the PYTHONPATH too early
 build-python%:
 	dh_testdir
 	python$* setup.py build
 
-docs: $(PYVERS:%=build-python%)
-	PYTHONPATH=$(subst $(SPACE),:,$(abspath $(wildcard build/lib*))) make docs
 
-clean:
-	dh_testdir
-	rm -rf build build-python* debian/python-pyaudio debian/python3-pyaudio debian/files docs
-	rm -rf src/*.pyc MANIFEST
-	dh_clean
+override_dh_auto_install: $(PYVERS:%=install-python%)
 
+install-python%:
+	python$* setup.py install --install-layout=deb --root=$(CURDIR)/debian/tmp
 
-install: build install-python install-python3 install-docbase
-
-install-python:
-	python$(PYVERS) setup.py install --install-layout=deb --root=$(CURDIR)/debian/python-pyaudio
-
-install-python3:
-	python$(PY3VERS) setup.py install --install-layout=deb --root=$(CURDIR)/debian/python3-pyaudio
-
-
-install-docbase: install-docbase install-docbase3
-
-install-docbase:
-	mkdir -p $(CURDIR)/debian/python-pyaudio/usr/share/doc-base/
-	cp $(CURDIR)/debian/python-pyaudio.doc-base $(CURDIR)/debian/python-pyaudio/usr/share/doc-base/python-pyaudio
-
-install-docbase3:
-	mkdir -p $(CURDIR)/debian/python3-pyaudio/usr/share/doc-base/
-	cp $(CURDIR)/debian/python3-pyaudio.doc-base $(CURDIR)/debian/python3-pyaudio/usr/share/doc-base/python3-pyaudio
-
-binary: binary-arch binary-indep
-# Nothing to do...
-binary-indep:
-binary-arch: build install
-	dh_testdir
-	dh_testroot
-	dh_installdocs
-	dh_installchangelogs CHANGELOG
-	dh_installexamples
-	dh_python2
-	dh_python3
-	dh_compress -X.js -X.py
-	dh_strip
-	dh_fixperms
-	dh_installdeb
-	dh_shlibdeps
-	dh_gencontrol
-	dh_md5sums
-	dh_builddeb

@@ -2,7 +2,7 @@ Source: python-pyaudio
 Section: python
 Priority: optional
 Standards-Version: 3.9.3
-Build-Depends: python-all-dev, python3-all-dev, python-support (>= 0.6), debhelper(>= 5), portaudio19-dev, python-epydoc, python-docutils, python3-all-dev
+Build-Depends: python-all-dev, python3-all-dev, debhelper(>= 9), portaudio19-dev, python-epydoc, python-docutils
 Maintainer: Hubert Pham <hubert@mit.edu>
 Uploaders: Felipe Sateler <fsateler@debian.org>, Justin Mazzola Paluska <jmp@mit.edu>
 Homepage: http://people.csail.mit.edu/hubert/pyaudio/
@@ -23,7 +23,7 @@ Package: python3-pyaudio
 Depends: ${python3:Depends}, ${shlibs:Depends}, ${misc:Depends}
 Provides: ${python3:Provides}
 Architecture: any
-Description: Python 3 bindings for PortAudio v19
+Description: Python3 bindings for PortAudio v19
  PyAudio provides Python bindings for PortAudio v19, the
  cross-platform audio I/O library. PyAudio makes it easy to use Python
  to play and record audio via pythonic wrappers around the PortAudio
