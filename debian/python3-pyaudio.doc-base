@@ -1,9 +1,0 @@
-Document: python3-pyaudio
-Title: PyAudio API
-Author: Hubert Pham
-Abstract: This manual is the API reference for the Python PyAudio library.
-Section: Programming/Python
-
-Format: HTML
-Index: /usr/share/doc/python3-pyaudio/docs/index.html
-Files: /usr/share/doc/python3-pyaudio/docs/*

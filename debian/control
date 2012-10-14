@@ -28,3 +28,13 @@ Description: Python3 bindings for PortAudio v19
  cross-platform audio I/O library. PyAudio makes it easy to use Python
  to play and record audio via pythonic wrappers around the PortAudio
  API.
+
+Package: python-pyaudio-doc
+Section: doc
+Depends: ${misc:Depends}
+Architecture: all
+Description: Documentation for Python bindings for PortAudio v19
+ Documentation for PyAudio, which provides Python bindings for
+ PortAudio v19, the cross-platform audio I/O library. PyAudio makes it
+ easy to use Python to play and record audio via pythonic wrappers
+ around the PortAudio API.
