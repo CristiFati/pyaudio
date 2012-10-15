@@ -12,6 +12,7 @@ Vcs-Browser: http://people.csail.mit.edu/hubert/git/pyaudio.git
 Package: python-pyaudio
 Depends: ${python:Depends}, ${shlibs:Depends}, ${misc:Depends}
 Provides: ${python:Provides}
+Suggests: python-pyaudio-doc (>= ${source:Upstream-Version})
 Architecture: any
 Description: Python bindings for PortAudio v19
  PyAudio provides Python bindings for PortAudio v19, the
@@ -22,6 +23,7 @@ Description: Python bindings for PortAudio v19
 Package: python3-pyaudio
 Depends: ${python3:Depends}, ${shlibs:Depends}, ${misc:Depends}
 Provides: ${python3:Provides}
+Suggests: python-pyaudio-doc (>= ${source:Upstream-Version})
 Architecture: any
 Description: Python3 bindings for PortAudio v19
  PyAudio provides Python bindings for PortAudio v19, the
