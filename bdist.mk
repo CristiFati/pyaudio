@@ -23,12 +23,14 @@ SRCFILES = $(addprefix $(PYAUDIODIR)/,\
 WIN32_PYTHON26 := /cygdrive/c/Python26/python.exe
 WIN32_PYTHON27 := /cygdrive/c/Python27/python.exe
 WIN32_PYTHON32 := /cygdrive/c/Python32/python.exe
+WIN32_PYTHON33 := /cygdrive/c/Python33/python.exe
 
 # distribution output:
 WIN32_PKG          := PyAudio-$(VERSION).win32.exe
 WIN32_PYTHON26_PKG := $(OUTPUT)/pyaudio-$(VERSION).py26.exe
 WIN32_PYTHON27_PKG := $(OUTPUT)/pyaudio-$(VERSION).py27.exe
 WIN32_PYTHON32_PKG := $(OUTPUT)/pyaudio-$(VERSION).py32.exe
+WIN32_PYTHON33_PKG := $(OUTPUT)/pyaudio-$(VERSION).py33.exe
 
 # mac os x:
 CLEAN_MPKG       := $(PACKAGINGDIR)/remove-macosx-mpkg-rules.py
@@ -37,12 +39,14 @@ SYS_PYTHON26_DIR := /System/Library/Frameworks/Python.framework/Versions/2.6/
 SYS_PYTHON27_DIR := /System/Library/Frameworks/Python.framework/Versions/2.7/
 MAC_PYTHON27_DIR := /Library/Frameworks/Python.framework/Versions/2.7/
 MAC_PYTHON32_DIR := /Library/Frameworks/Python.framework/Versions/3.2/
+MAC_PYTHON33_DIR := /Library/Frameworks/Python.framework/Versions/3.3/
 
 # targets
 SYS_PYTHON26_PKG := $(OUTPUT)/PyAudio-$(VERSION)-sys-py2.6-macosx10.8.mpkg
 SYS_PYTHON27_PKG := $(OUTPUT)/PyAudio-$(VERSION)-sys-py2.7-macosx10.8.mpkg
 MAC_PYTHON27_PKG := $(OUTPUT)/PyAudio-$(VERSION)-mac-py2.7-macosx10.8.mpkg
 MAC_PYTHON32_PKG := $(OUTPUT)/PyAudio-$(VERSION)-mac-py3.2-macosx10.8.mpkg
+MAC_PYTHON33_PKG := $(OUTPUT)/PyAudio-$(VERSION)-mac-py3.3-macosx10.8.mpkg
 
 # meta package containing all installers
 MPKG_INSTALLER := $(OUTPUT)/pyaudio-$(VERSION).mpkg
@@ -74,10 +78,18 @@ $(MAC_PYTHON27_PKG):
 
 $(MAC_PYTHON32_PKG): PYTHON_DIR=$(MAC_PYTHON32_DIR)
 $(MAC_PYTHON32_PKG): BDIST_MPKG_DIR=$(PYTHON_DIR)/bin
-$(MAC_PYTHON32_PKG): PYTHON=python3
+$(MAC_PYTHON32_PKG): PYTHON=python3.2
 $(MAC_PYTHON32_PKG): CC=/usr/bin/gcc
 $(MAC_PYTHON32_PKG): SYSROOT_PATH=/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.7.sdk
 $(MAC_PYTHON32_PKG):
+	$(call _build_mac_package,$@)
+
+$(MAC_PYTHON33_PKG): PYTHON_DIR=$(MAC_PYTHON33_DIR)
+$(MAC_PYTHON33_PKG): BDIST_MPKG_DIR=$(PYTHON_DIR)/bin
+$(MAC_PYTHON33_PKG): PYTHON=python3.3
+$(MAC_PYTHON33_PKG): CC=/usr/bin/gcc
+$(MAC_PYTHON33_PKG): SYSROOT_PATH=/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.7.sdk
+$(MAC_PYTHON33_PKG):
 	$(call _build_mac_package,$@)
 
 $(SYS_PYTHON26_PKG): PYTHON_DIR=$(SYS_PYTHON26_DIR)
@@ -99,7 +111,7 @@ $(SYS_PYTHON27_PKG):
 _build_mac_package = \
 	SYSROOT_PATH=$(SYSROOT_PATH)    \
 	PORTAUDIO_PATH=$(PORTAUDIODIR)  \
-	CC=$(CC) $(PYTHON_DIR)/bin/$(PYTHON) setup.py build --static-link && \
+	$(PYTHON_DIR)/bin/$(PYTHON) setup.py build --static-link && \
 	$(BDIST_MPKG_DIR)/bdist_mpkg && \
 	sleep 2 &&                      \
 	mv $(DISTDIR)/$(notdir $(subst -mac-,-,$(subst -sys-,-,$(1)))) \
@@ -119,7 +131,7 @@ _fix_bundle_id = \
 
 $(MPKG_INSTALLER): $(OUTPUT) $(SYS_PYTHON26_PKG) \
 		   $(SYS_PYTHON27_PKG) $(MAC_PYTHON27_PKG) \
-		   $(MAC_PYTHON32_PKG)
+		   $(MAC_PYTHON32_PKG) $(MAC_PYTHON33_PKG)
 	@echo "Making Meta Package"
 	@$(PACKAGEMAKER) --doc $(PACKAGEDOC) --out $(MPKG_INSTALLER)
 
@@ -178,6 +190,11 @@ $(WIN32_PYTHON32_PKG): PYTHON=$(WIN32_PYTHON32)
 $(WIN32_PYTHON32_PKG):
 	$(call _build_win_package,$@)
 
+$(WIN32_PYTHON33_PKG): $(SRCFILES)
+$(WIN32_PYTHON33_PKG): PYTHON=$(WIN32_PYTHON33)
+$(WIN32_PYTHON33_PKG):
+	$(call _build_win_package,$@)
+
 _build_win_package = \
 	PACKAGING_PATH=$(PACKAGINGDIR)                              \
 	PORTAUDIO_PATH=$(PORTAUDIODIR)                              \
@@ -187,17 +204,7 @@ _build_win_package = \
 	mv $(DISTDIR)/$(WIN32_PKG) $(1)
 
 win32: $(OUTPUT) $(WIN32_PYTHON26_PKG) $(WIN32_PYTHON27_PKG) \
-	$(WIN32_PYTHON32_PKG)
+	$(WIN32_PYTHON32_PKG) $(WIN32_PYTHON33_PKG)
 
 $(OUTPUT):
 	@mkdir -p $(OUTPUT)
-
-
-######################################################################
-# Source
-######################################################################
-TARBALL := $(OUTPUT)/PyAudio-0.2.4.tar.gz
-
-source: $(TARBALL)
-$(TARBALL): docs $(SRCFILES) MANIFEST.in
-	@python setup.py sdist
