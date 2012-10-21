@@ -1,3 +1,10 @@
+python-pyaudio (0.2.7-1) experimental; urgency=low
+
+  * Add support for callables in non-blocking mode.
+  * Change documentation generator to Sphinx.
+
+ -- Hubert Pham <hubert@mit.edu>  Sat, 20 Oct 2012 20:00:00 -0500
+
 python-pyaudio (0.2.6-1) experimental; urgency=low
 
   * New upstream release.
