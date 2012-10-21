@@ -1,6 +1,8 @@
-python-pyaudio (0.2.6-1) unstable; urgency=low
+python-pyaudio (0.2.6-1) experimental; urgency=low
 
+  * New upstream release.
   * Add support for Python 3.
+  * Split documentation into python-pyaudio-doc package.
 
  -- Hubert Pham <hubert@mit.edu>  Sat, 02 Sep 2012 21:00:00 -0500
 
