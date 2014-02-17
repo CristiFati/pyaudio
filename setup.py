@@ -1,7 +1,7 @@
 """
-PyAudio v0.2.7: Python Bindings for PortAudio.
+PyAudio v0.2.8: Python Bindings for PortAudio.
 
-Copyright (c) 2006-2012 Hubert Pham
+Copyright (c) 2006-2014 Hubert Pham
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the
@@ -30,7 +30,7 @@ from distutils.core import setup, Extension
 import sys
 import os
 
-__version__ = "0.2.7"
+__version__ = "0.2.8"
 
 # Note: distutils will try to locate and link dynamically
 #       against portaudio.
@@ -59,7 +59,7 @@ pyaudio_module_sources = ['src/_portaudiomodule.c']
 
 include_dirs = []
 external_libraries = []
-extra_compile_args = ['-fno-strict-aliasing']
+extra_compile_args = []
 extra_link_args = []
 scripts = []
 defines = []
@@ -101,7 +101,7 @@ if STATIC_LINKING:
         extra_link_args += ['-lwinmm']
 
     elif sys.platform == 'linux2':
-        external_libraries += ['rt', 'm', 'pthread']
+        extra_link_args += ['-lrt', '-lm', '-lpthread']
 
         # Since you're insisting on linking statically against
         # PortAudio on GNU/Linux, be sure to link in whatever sound
@@ -110,7 +110,7 @@ if STATIC_LINKING:
         # I'll start you off with ALSA, since that's the most common
         # today. If you need JACK support, add it here.
 
-        external_libraries += ['asound']
+        extra_link_args += ['-lasound', '-ljack']
 
 
 pyaudio = Extension('_portaudio',

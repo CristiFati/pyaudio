@@ -195,7 +195,7 @@ _pyAudio_paDeviceInfo_get_name(_pyAudio_paDeviceInfo *self,
     return NULL;
   }
 
-  return PyUnicode_FromString(self->devInfo->name);
+  return PyBytes_FromString(self->devInfo->name);
 }
 
 static PyObject *
@@ -937,7 +937,9 @@ static void
 _cleanup_Stream_object(_pyAudio_Stream *streamObject)
 {
   if (streamObject->stream != NULL) {
+    Py_BEGIN_ALLOW_THREADS
     Pa_CloseStream(streamObject->stream);
+    Py_END_ALLOW_THREADS
     streamObject->stream = NULL;
   }
 
@@ -1532,13 +1534,15 @@ _stream_callback_cfunction(const void *input,
                                          timeInfo->outputBufferDacTime);
   PyObject *py_status_flags = PyLong_FromUnsignedLong(statusFlags);
   PyObject *py_input_data = Py_None;
+  const char *pData;
+  int output_len;
+  PyObject *py_result;
 
   if (input) {
     py_input_data = PyBytes_FromStringAndSize(input,
                                               bytes_per_frame * frameCount);
   }
 
-  PyObject *py_result;
   py_result = PyObject_CallFunctionObjArgs(py_callback,
                                            py_input_data,
                                            py_frame_count,
@@ -1565,8 +1569,6 @@ _stream_callback_cfunction(const void *input,
     goto end;
   }
 
-  const char *pData;
-  int output_len;
 
   if (!PyArg_ParseTuple(py_result,
                         "z#i",
@@ -1654,6 +1656,28 @@ pa_open(PyObject *self, PyObject *args, PyObject *kwargs)
   PyObject *stream_callback = NULL;
   PaSampleFormat format;
   PaError err;
+  PyObject *input_device_index_long;
+  PyObject *output_device_index_long;
+  PaStreamParameters *outputParameters = NULL;
+  PaStreamParameters *inputParameters = NULL;
+  PaStream *stream = NULL;
+  PaStreamInfo *streamInfo = NULL;
+  PyAudioCallbackContext *context = NULL;
+  _pyAudio_Stream *streamObject;
+
+  /* pass in rate, channel, width */
+  static char *kwlist[] = {"rate",
+			   "channels",
+			   "format",
+			   "input",
+			   "output",
+			   "input_device_index",
+			   "output_device_index",
+			   "frames_per_buffer",
+			   "input_host_api_specific_stream_info",
+			   "output_host_api_specific_stream_info",
+			   "stream_callback",
+			   NULL};
 
 #ifdef MACOSX
   _pyAudio_MacOSX_hostApiSpecificStreamInfo *inputHostSpecificStreamInfo =
@@ -1670,20 +1694,6 @@ pa_open(PyObject *self, PyObject *args, PyObject *kwargs)
   input = 0;
   output = 0;
   frames_per_buffer = DEFAULT_FRAMES_PER_BUFFER;
-
-  /* pass in rate, channel, width */
-  static char *kwlist[] = {"rate",
-			   "channels",
-			   "format",
-			   "input",
-			   "output",
-			   "input_device_index",
-			   "output_device_index",
-			   "frames_per_buffer",
-			   "input_host_api_specific_stream_info",
-			   "output_host_api_specific_stream_info",
-                           "stream_callback",
-			   NULL};
 
   if (!PyArg_ParseTupleAndKeywords(args, kwargs,
 #ifdef MACOSX
@@ -1732,7 +1742,7 @@ pa_open(PyObject *self, PyObject *args, PyObject *kwargs)
       return NULL;
     }
 
-    PyObject *input_device_index_long =
+    input_device_index_long =
       PyNumber_Long(input_device_index_arg);
 
     input_device_index = (int) PyLong_AsLong(input_device_index_long);
@@ -1760,7 +1770,7 @@ pa_open(PyObject *self, PyObject *args, PyObject *kwargs)
       return NULL;
     }
 
-    PyObject *output_device_index_long =
+    output_device_index_long =
       PyNumber_Long(output_device_index_arg);
     output_device_index = (int) PyLong_AsLong(output_device_index_long);
     Py_DECREF(output_device_index_long);
@@ -1780,9 +1790,6 @@ pa_open(PyObject *self, PyObject *args, PyObject *kwargs)
     PyErr_SetString(PyExc_ValueError, "Invalid audio channels");
     return NULL;
   }
-
-  PaStreamParameters *outputParameters = NULL;
-  PaStreamParameters *inputParameters = NULL;
 
   if (output) {
     outputParameters =
@@ -1859,10 +1866,6 @@ pa_open(PyObject *self, PyObject *args, PyObject *kwargs)
 
   }
 
-  PaStream *stream = NULL;
-  PaStreamInfo *streamInfo = NULL;
-  PyAudioCallbackContext *context = NULL;
-
   // Handle callback mode:
   if (stream_callback) {
     Py_INCREF(stream_callback);
@@ -1913,7 +1916,7 @@ pa_open(PyObject *self, PyObject *args, PyObject *kwargs)
     return NULL;
   }
 
-  _pyAudio_Stream *streamObject = _create_Stream_object();
+  streamObject = _create_Stream_object();
   streamObject->stream = stream;
   streamObject->inputParameters = inputParameters;
   streamObject->outputParameters = outputParameters;
@@ -2045,6 +2048,7 @@ pa_start_stream(PyObject *self, PyObject *args)
   int err;
   PyObject *stream_arg;
   _pyAudio_Stream *streamObject;
+  PaStream *stream;
 
   if (!PyArg_ParseTuple(args, "O!", &_pyAudio_StreamType, &stream_arg))
     return NULL;
@@ -2059,7 +2063,7 @@ pa_start_stream(PyObject *self, PyObject *args)
     return NULL;
   }
 
-  PaStream *stream = streamObject->stream;
+  stream = streamObject->stream;
 
   if ( ((err = Pa_StartStream(stream)) != paNoError) &&
        (err != paStreamIsNotStopped)) {
@@ -2089,6 +2093,7 @@ pa_stop_stream(PyObject *self, PyObject *args)
   int err;
   PyObject *stream_arg;
   _pyAudio_Stream *streamObject;
+  PaStream *stream;
 
   if (!PyArg_ParseTuple(args, "O!", &_pyAudio_StreamType, &stream_arg))
     return NULL;
@@ -2100,11 +2105,13 @@ pa_stop_stream(PyObject *self, PyObject *args)
     return NULL;
   }
 
-  PaStream *stream = streamObject->stream;
+  stream = streamObject->stream;
 
-  if ( ((err = Pa_StopStream(stream)) != paNoError)  &&
-       (err != paStreamIsStopped)) {
+  Py_BEGIN_ALLOW_THREADS
+  err = Pa_StopStream(stream);
+  Py_END_ALLOW_THREADS
 
+  if ((err != paNoError) && (err != paStreamIsStopped)) {
     _cleanup_Stream_object(streamObject);
 
 #ifdef VERBOSE
@@ -2130,6 +2137,7 @@ pa_abort_stream(PyObject *self, PyObject *args)
   int err;
   PyObject *stream_arg;
   _pyAudio_Stream *streamObject;
+  PaStream *stream;
 
   if (!PyArg_ParseTuple(args, "O!", &_pyAudio_StreamType, &stream_arg))
     return NULL;
@@ -2141,10 +2149,13 @@ pa_abort_stream(PyObject *self, PyObject *args)
     return NULL;
   }
 
-  PaStream *stream = streamObject->stream;
+  stream = streamObject->stream;
 
-  if ( ((err = Pa_AbortStream(stream)) != paNoError) &&
-       (err != paStreamIsStopped)) {
+  Py_BEGIN_ALLOW_THREADS
+  err = Pa_AbortStream(stream);
+  Py_END_ALLOW_THREADS
+
+  if ((err != paNoError) && (err != paStreamIsStopped)) {
     _cleanup_Stream_object(streamObject);
 
 #ifdef VERBOSE
@@ -2170,6 +2181,7 @@ pa_is_stream_stopped(PyObject *self, PyObject *args)
   int err;
   PyObject *stream_arg;
   _pyAudio_Stream *streamObject;
+  PaStream *stream;
 
   if (!PyArg_ParseTuple(args, "O!", &_pyAudio_StreamType, &stream_arg))
     return NULL;
@@ -2184,7 +2196,7 @@ pa_is_stream_stopped(PyObject *self, PyObject *args)
     return NULL;
   }
 
-  PaStream *stream = streamObject->stream;
+  stream = streamObject->stream;
 
   if ((err = Pa_IsStreamStopped(stream)) < 0) {
     _cleanup_Stream_object(streamObject);
@@ -2218,6 +2230,7 @@ pa_is_stream_active(PyObject *self, PyObject *args)
   int err;
   PyObject *stream_arg;
   _pyAudio_Stream *streamObject;
+  PaStream *stream;
 
   if (!PyArg_ParseTuple(args, "O!", &_pyAudio_StreamType, &stream_arg))
     return NULL;
@@ -2229,7 +2242,7 @@ pa_is_stream_active(PyObject *self, PyObject *args)
     return NULL;
   }
 
-  PaStream *stream = streamObject->stream;
+  stream = streamObject->stream;
 
   if ((err = Pa_IsStreamActive(stream)) < 0) {
     _cleanup_Stream_object(streamObject);
@@ -2262,6 +2275,7 @@ pa_get_stream_time(PyObject *self, PyObject *args)
   double time;
   PyObject *stream_arg;
   _pyAudio_Stream *streamObject;
+  PaStream *stream;
 
   if (!PyArg_ParseTuple(args, "O!", &_pyAudio_StreamType, &stream_arg))
     return NULL;
@@ -2276,7 +2290,7 @@ pa_get_stream_time(PyObject *self, PyObject *args)
     return NULL;
   }
 
-  PaStream *stream = streamObject->stream;
+  stream = streamObject->stream;
 
   if ((time = Pa_GetStreamTime(stream)) == 0) {
     _cleanup_Stream_object(streamObject);
@@ -2295,6 +2309,7 @@ pa_get_stream_cpu_load(PyObject *self, PyObject *args)
 {
   PyObject *stream_arg;
   _pyAudio_Stream *streamObject;
+  PaStream *stream;
 
   if (!PyArg_ParseTuple(args, "O!", &_pyAudio_StreamType, &stream_arg))
     return NULL;
@@ -2309,7 +2324,7 @@ pa_get_stream_cpu_load(PyObject *self, PyObject *args)
     return NULL;
   }
 
-  PaStream *stream = streamObject->stream;
+  stream = streamObject->stream;
   return PyFloat_FromDouble(Pa_GetStreamCpuLoad(stream));
 }
 
@@ -2329,6 +2344,7 @@ pa_write_stream(PyObject *self, PyObject *args)
 
   PyObject *stream_arg;
   _pyAudio_Stream *streamObject;
+  PaStream *stream;
 
   if (!PyArg_ParseTuple(args, "O!s#i|i",
 			&_pyAudio_StreamType,
@@ -2356,7 +2372,7 @@ pa_write_stream(PyObject *self, PyObject *args)
     return NULL;
   }
 
-  PaStream *stream = streamObject->stream;
+  stream = streamObject->stream;
 
   Py_BEGIN_ALLOW_THREADS
   err = Pa_WriteStream(stream, data, total_frames);
@@ -2401,6 +2417,8 @@ pa_read_stream(PyObject *self, PyObject *args)
 
   PyObject *stream_arg;
   _pyAudio_Stream *streamObject;
+  PaStream *stream;
+  PaStreamParameters *inputParameters;
 
   if (!PyArg_ParseTuple(args, "O!i",
 			&_pyAudio_StreamType,
@@ -2424,8 +2442,8 @@ pa_read_stream(PyObject *self, PyObject *args)
     return NULL;
   }
 
-  PaStream *stream = streamObject->stream;
-  PaStreamParameters *inputParameters = streamObject->inputParameters;
+  stream = streamObject->stream;
+  inputParameters = streamObject->inputParameters;
   num_bytes = (total_frames) * (inputParameters->channelCount) *
     (Pa_GetSampleSize(inputParameters->sampleFormat));
 
@@ -2486,6 +2504,7 @@ pa_get_stream_write_available(PyObject *self, PyObject *args)
   signed long frames;
   PyObject *stream_arg;
   _pyAudio_Stream *streamObject;
+  PaStream *stream;
 
   if (!PyArg_ParseTuple(args, "O!", &_pyAudio_StreamType, &stream_arg))
     return NULL;
@@ -2500,7 +2519,7 @@ pa_get_stream_write_available(PyObject *self, PyObject *args)
     return NULL;
   }
 
-  PaStream *stream = streamObject->stream;
+  stream = streamObject->stream;
   frames = Pa_GetStreamWriteAvailable(stream);
   return PyLong_FromLong(frames);
 }
@@ -2511,6 +2530,7 @@ pa_get_stream_read_available(PyObject *self, PyObject *args)
   signed long frames;
   PyObject *stream_arg;
   _pyAudio_Stream *streamObject;
+  PaStream *stream;
 
   if (!PyArg_ParseTuple(args, "O!", &_pyAudio_StreamType, &stream_arg))
     return NULL;
@@ -2525,7 +2545,7 @@ pa_get_stream_read_available(PyObject *self, PyObject *args)
     return NULL;
   }
 
-  PaStream *stream = streamObject->stream;
+  stream = streamObject->stream;
   frames = Pa_GetStreamReadAvailable(stream);
   return PyLong_FromLong(frames);
 }
