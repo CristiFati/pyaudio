@@ -42,11 +42,11 @@ MAC_PYTHON32_DIR := /Library/Frameworks/Python.framework/Versions/3.2/
 MAC_PYTHON33_DIR := /Library/Frameworks/Python.framework/Versions/3.3/
 
 # targets
-SYS_PYTHON26_PKG := $(OUTPUT)/PyAudio-$(VERSION)-sys-py2.6-macosx10.8.mpkg
-SYS_PYTHON27_PKG := $(OUTPUT)/PyAudio-$(VERSION)-sys-py2.7-macosx10.8.mpkg
-MAC_PYTHON27_PKG := $(OUTPUT)/PyAudio-$(VERSION)-mac-py2.7-macosx10.8.mpkg
-MAC_PYTHON32_PKG := $(OUTPUT)/PyAudio-$(VERSION)-mac-py3.2-macosx10.8.mpkg
-MAC_PYTHON33_PKG := $(OUTPUT)/PyAudio-$(VERSION)-mac-py3.3-macosx10.8.mpkg
+SYS_PYTHON26_PKG := $(OUTPUT)/PyAudio-$(VERSION)-sys-py2.6-macosx10.9.mpkg
+SYS_PYTHON27_PKG := $(OUTPUT)/PyAudio-$(VERSION)-sys-py2.7-macosx10.9.mpkg
+MAC_PYTHON27_PKG := $(OUTPUT)/PyAudio-$(VERSION)-mac-py2.7-macosx10.9.mpkg
+MAC_PYTHON32_PKG := $(OUTPUT)/PyAudio-$(VERSION)-mac-py3.2-macosx10.9.mpkg
+MAC_PYTHON33_PKG := $(OUTPUT)/PyAudio-$(VERSION)-mac-py3.3-macosx10.9.mpkg
 
 # meta package containing all installers
 MPKG_INSTALLER := $(OUTPUT)/pyaudio-$(VERSION).mpkg
@@ -80,7 +80,6 @@ $(MAC_PYTHON32_PKG): PYTHON_DIR=$(MAC_PYTHON32_DIR)
 $(MAC_PYTHON32_PKG): BDIST_MPKG_DIR=$(PYTHON_DIR)/bin
 $(MAC_PYTHON32_PKG): PYTHON=python3.2
 $(MAC_PYTHON32_PKG): CC=/usr/bin/gcc
-$(MAC_PYTHON32_PKG): SYSROOT_PATH=/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.7.sdk
 $(MAC_PYTHON32_PKG):
 	$(call _build_mac_package,$@)
 
@@ -88,7 +87,6 @@ $(MAC_PYTHON33_PKG): PYTHON_DIR=$(MAC_PYTHON33_DIR)
 $(MAC_PYTHON33_PKG): BDIST_MPKG_DIR=$(PYTHON_DIR)/bin
 $(MAC_PYTHON33_PKG): PYTHON=python3.3
 $(MAC_PYTHON33_PKG): CC=/usr/bin/gcc
-$(MAC_PYTHON33_PKG): SYSROOT_PATH=/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.7.sdk
 $(MAC_PYTHON33_PKG):
 	$(call _build_mac_package,$@)
 

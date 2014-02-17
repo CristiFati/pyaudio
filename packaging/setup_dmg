@@ -1,6 +1,6 @@
 -- http://stackoverflow.com/questions/96882/how-do-i-create-a-nice-looking-dmg-for-mac-os-x-using-command-line-tools
 tell application "Finder"
-	tell disk "PyAudio 0.2.7"
+	tell disk "PyAudio 0.2.8"
 		open
 		set current view of container window to icon view
 		set toolbar visible of container window to false
