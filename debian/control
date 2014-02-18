@@ -1,8 +1,8 @@
 Source: python-pyaudio
 Section: python
 Priority: optional
-Standards-Version: 3.9.3
-Build-Depends: python-all-dev, python3-all-dev, debhelper(>= 9), portaudio19-dev, python-sphinx, python-docutils
+Standards-Version: 3.9.4
+Build-Depends: python-all-dev, python3-all-dev, debhelper(>= 9), portaudio19-dev, python-sphinx, python-docutils, dh-linktree, libjs-jquery, libjs-underscore
 Maintainer: Hubert Pham <hubert@mit.edu>
 Uploaders: Felipe Sateler <fsateler@debian.org>, Justin Mazzola Paluska <jmp@mit.edu>
 Homepage: http://people.csail.mit.edu/hubert/pyaudio/

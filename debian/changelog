@@ -1,3 +1,11 @@
+python-pyaudio (0.2.7-2) unstable; urgency=low
+
+  * Upload to unstable
+  * Bump standards version
+  * Link jquery and underscore to the libjs- packages
+
+ -- Felipe Sateler <fsateler@debian.org>  Sat, 19 Oct 2013 17:35:39 -0300
+
 python-pyaudio (0.2.7-1) experimental; urgency=low
 
   * Add support for callables in non-blocking mode.

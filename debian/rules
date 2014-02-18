@@ -9,7 +9,7 @@ PYVERS := $(shell pyversions -vs) $(shell py3versions -vs)
 PYTHONPATH=$(subst $(SPACE),:,$(abspath $(wildcard build/lib*)))
 
 %:
-	dh $@ --with python2,python3
+	dh $@ --with python2,python3,linktree
 
 override_dh_auto_build: $(PYVERS:%=build-python%)
 	PYTHONPATH=$(PYTHONPATH) make docs

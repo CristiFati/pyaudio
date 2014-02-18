@@ -1,0 +1,3 @@
+replace usr/share/javascript/jquery usr/share/doc/python-pyaudio-doc/docs/_static
+replace usr/share/javascript/underscore usr/share/doc/python-pyaudio-doc/docs/_static
+
