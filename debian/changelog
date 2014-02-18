@@ -1,3 +1,12 @@
+python-pyaudio (0.2.8-1) experimental; urgency=low
+
+  * Fix support for non-UTF8 encoded device names.
+  * Fix deadlock on some platforms when calling pa.stop_stream.
+  * Fix debian packaging to avoid including unnecessary files.
+    Closes: #743660.
+
+ -- Hubert Pham <hubert@mit.edu>  Mon, 12 Apr 2014 19:00:00 -0500
+
 python-pyaudio (0.2.7-2) unstable; urgency=low
 
   * Upload to unstable
