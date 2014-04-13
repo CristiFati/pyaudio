@@ -1,1 +1,3 @@
-usr/lib/python3*/*-packages/*
+usr/lib/python3*/*-packages/pyaudio.py
+usr/lib/python3*/*-packages/*.so
+usr/lib/python3*/*-packages/*.egg-info
