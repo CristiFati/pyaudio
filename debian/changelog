@@ -1,4 +1,4 @@
-python-pyaudio (0.2.8-1) experimental; urgency=low
+python-pyaudio (0.2.8-1) unstable; urgency=low
 
   * Fix support for non-UTF8 encoded device names.
   * Fix deadlock on some platforms when calling pa.stop_stream.
