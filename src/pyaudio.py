@@ -109,7 +109,7 @@ __author__ = "Hubert Pham"
 __version__ = "0.2.11"
 __docformat__ = "restructuredtext en"
 
-import sys
+import locale
 
 # attempt to import PortAudio
 try:
@@ -991,7 +991,8 @@ class PyAudio:
         device_name = device_info.name
 
         # Attempt to decode device_name
-        for codec in ["utf-8", "cp1252"]:
+        os_encoding = locale.getpreferredencoding(do_setlocale=False)
+        for codec in [os_encoding, "utf-8"]:
             try:
                 device_name = device_name.decode(codec)
                 break
