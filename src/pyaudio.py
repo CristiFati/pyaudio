@@ -245,7 +245,7 @@ def get_portaudio_version():
     """
     Returns portaudio version.
 
-    :rtype: string
+    :rtype: int
     """
 
     return pa.get_version()
@@ -598,7 +598,7 @@ class Stream:
            to True.
         :raises IOError: if stream is not an input stream
           or if the read operation was unsuccessful.
-        :rtype: string
+        :rtype: bytes
         """
 
         if not self._is_input:
