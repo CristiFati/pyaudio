@@ -2280,7 +2280,10 @@ init_portaudio(void)
 {
   PyObject *m;
 
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION <= 6
+  // Deprecated since Python 3.7; now called by Py_Initialize().
   PyEval_InitThreads();
+#endif
 
   _pyAudio_StreamType.tp_new = PyType_GenericNew;
   if (PyType_Ready(&_pyAudio_StreamType) < 0) {
