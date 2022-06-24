@@ -34,7 +34,7 @@
 #include "pa_mac_core.h"
 #endif
 
-#define DEFAULT_FRAMES_PER_BUFFER 1024
+#define DEFAULT_FRAMES_PER_BUFFER paFramesPerBufferUnspecified
 /* #define VERBOSE */
 
 // Fix for Win32, as recommended by Tomasz Gandor:
@@ -2402,6 +2402,10 @@ init_portaudio(void)
   PyModule_AddIntConstant(m, "paOutputUnderflow", paOutputUnderflow);
   PyModule_AddIntConstant(m, "paOutputOverflow", paOutputOverflow);
   PyModule_AddIntConstant(m, "paPrimingOutput", paPrimingOutput);
+
+  /* misc */
+  PyModule_AddIntConstant(m, "paFramesPerBufferUnspecified",
+                          paFramesPerBufferUnspecified);
 
 #ifdef MACOSX
   PyModule_AddIntConstant(m, "paMacCoreChangeDeviceParameters",

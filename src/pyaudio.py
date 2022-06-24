@@ -195,6 +195,10 @@ paOutputUnderflow = pa.paOutputUnderflow #: Buffer underflow in output
 paOutputOverflow  = pa.paOutputOverflow  #: Buffer overflow in output
 paPrimingOutput   = pa.paPrimingOutput   #: Just priming, not playing yet
 
+###### portaudio misc ######
+
+paFramesPerBufferUnspecified = pa.paFramesPerBufferUnspecified
+
 ############################################################
 # Convenience Functions
 ############################################################
@@ -295,7 +299,7 @@ class Stream:
                  output=False,
                  input_device_index=None,
                  output_device_index=None,
-                 frames_per_buffer=1024,
+                 frames_per_buffer=pa.paFramesPerBufferUnspecified,
                  start=True,
                  input_host_api_specific_stream_info=None,
                  output_host_api_specific_stream_info=None,
