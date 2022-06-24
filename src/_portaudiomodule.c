@@ -25,6 +25,7 @@
  */
 
 #include <stdio.h>
+#define PY_SSIZE_T_CLEAN
 #include "Python.h"
 #include "portaudio.h"
 #include "_portaudiomodule.h"
@@ -1295,7 +1296,7 @@ int _stream_callback_cfunction(const void *input, void *output,
   PyObject *py_status_flags = PyLong_FromUnsignedLong(statusFlags);
   PyObject *py_input_data = Py_None;
   const char *pData;
-  unsigned output_len;
+  Py_ssize_t output_len;
   PyObject *py_result;
 
   if (input) {
@@ -1368,12 +1369,12 @@ int _stream_callback_cfunction(const void *input, void *output,
   // Copy bytes for playback only if this is an output stream:
   if (output) {
     char *output_data = (char *)output;
-    memcpy(output_data, pData, min(output_len, bytes_per_frame * frameCount));
+    long pa_num_bytes = bytes_per_frame * frameCount;
+    memcpy(output_data, pData, min(output_len, pa_num_bytes));
     // Pad out the rest of the buffer with 0s if callback returned
     // too few frames (and assume paComplete).
-    if (output_len < (frameCount * bytes_per_frame)) {
-      memset(output_data + output_len, 0,
-             (frameCount * bytes_per_frame) - output_len);
+    if (output_len < pa_num_bytes) {
+      memset(output_data + output_len, 0, pa_num_bytes - output_len);
       return_val = paComplete;
     }
   }
@@ -2043,7 +2044,7 @@ static PyObject *pa_get_stream_cpu_load(PyObject *self, PyObject *args) {
 
 static PyObject *pa_write_stream(PyObject *self, PyObject *args) {
   const char *data;
-  int total_size;
+  Py_ssize_t total_size;
   int total_frames;
   int err;
   int should_throw_exception = 0;
