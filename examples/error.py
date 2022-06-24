@@ -27,28 +27,28 @@ else:
 # try to get an invalid device
 try:
     p.get_host_api_info_by_type(-1)
-except IOError as e:
-    assert e.args[1] == pyaudio.paHostApiNotFound
-    print("OK: %s" % e.args[0])
+except OSError as e:
+    assert e.args[0] == pyaudio.paHostApiNotFound, e.args
+    print("OK: %s" % e.args[1])
 else:
     assert False, "invalid host type"
 
 # try to get host api info by index
 try:
     p.get_host_api_info_by_index(-1)
-except IOError as e:
-    assert e.args[1] == pyaudio.paInvalidHostApi
-    print("OK: %s" % e.args[0])
+except OSError as e:
+    assert e.args[0] == pyaudio.paInvalidHostApi
+    print("OK: %s" % e.args[1])
 else:
     assert False, "invalid host api index"
 
 # try good host api device index
 try:
     p.get_device_info_by_host_api_device_index(0, -1)
-except IOError as e:
-    assert ((e.args[1] == pyaudio.paInvalidDevice) or \
-            (e.args[1] == pyaudio.paInvalidHostApi))
-    print("OK: %s" % e.args[0])
+except OSError as e:
+    assert ((e.args[0] == pyaudio.paInvalidDevice) or \
+            (e.args[0] == pyaudio.paInvalidHostApi))
+    print("OK: %s" % e.args[1])
 else:
     assert False, "device info by host api device idnex"
 
@@ -56,10 +56,10 @@ else:
 # try bad host api and good device index
 try:
     p.get_device_info_by_host_api_device_index(-1, 0)
-except IOError as e:
-    assert ((e.args[1] == pyaudio.paInvalidDevice) or \
-            (e.args[1] == pyaudio.paInvalidHostApi))
-    print("OK: %s" % e.args[0])
+except OSError as e:
+    assert ((e.args[0] == pyaudio.paInvalidDevice) or \
+            (e.args[0] == pyaudio.paInvalidHostApi))
+    print("OK: %s" % e.args[1])
 else:
     assert False, "device info by host api device idnex"
 
@@ -67,9 +67,9 @@ else:
 # bad device index
 try:
     p.get_device_info_by_index(-1)
-except IOError as e:
-    assert e.args[1] == pyaudio.paInvalidDevice
-    print("OK: %s" % e.args[0])
+except OSError as e:
+    assert e.args[0] == pyaudio.paInvalidDevice
+    print("OK: %s" % e.args[1])
 else:
     assert False, "bad device index"
 
@@ -85,18 +85,23 @@ stream = p.open(channels = 1,
 
 try:
     data = stream.read(2)
-except IOError as e:
-    print("OK: %s" % e.args[0])
-    assert e.args[1] == pyaudio.paStreamIsStopped, e.args[1]
+except OSError as e:
+    assert e.args[0] == pyaudio.paStreamIsStopped, e.args
+    print("OK: %s" % e.args[1])
 else:
     assert False, "Should have caused exception"
 
+stream = p.open(channels = 1,
+                rate = 44100,
+                format = pyaudio.paInt16,
+                input = True,
+                start = False)
 stream.start_stream()
 
 # try to write to the input stream
 try:
     stream.write('foobar')
-except IOError as e:
+except OSError as e:
     assert e.args[1] == pyaudio.paCanNotWriteToAnInputOnlyStream
     print("OK: %s" % e.args[0])
 else:
@@ -115,8 +120,8 @@ try:
     data = stream.read(2)
 except IOError as e:
     # some slower machines might overflow
-    assert e.args[1] == pyaudio.paInputOverflowed, e
-    print("OK: %s" % e.args[0])
+    assert e.args[0] == pyaudio.paInputOverflowed, e
+    print("OK: %s" % e.args[1])
 else:
     print("OK: got %d bytes of data" % len(data))
 
@@ -129,8 +134,8 @@ stream.close()
 try:
     stream.get_input_latency()
 except IOError as e:
-    assert e.args[1] == pyaudio.paBadStreamPtr
-    print("OK: %s" % e.args[0])
+    assert e.args[0] == pyaudio.paBadStreamPtr
+    print("OK: %s" % e.args[1])
 else:
     assert False, "closed stream"
 
@@ -138,8 +143,8 @@ else:
 try:
     stream.read(10)
 except IOError as e:
-    assert e.args[1] == pyaudio.paBadStreamPtr
-    print("OK: %s" % e.args[0])
+    assert e.args[0] == pyaudio.paBadStreamPtr
+    print("OK: %s" % e.args[1])
 else:
     assert False, "closed stream"
 
