@@ -1,8 +1,12 @@
+import os
 import sys
 import time
 import unittest
 
 import pyaudio
+
+# To skip tests requiring hardware, set this environment variable:
+SKIP_HW_TESTS = 'PYAUDIO_SKIP_HW_TESTS' in os.environ
 
 class PyAudioErrorTests(unittest.TestCase):
     def setUp(self):
@@ -38,6 +42,7 @@ class PyAudioErrorTests(unittest.TestCase):
         with self.assertRaises(IOError):
             self.p.get_device_info_by_index(-1)
 
+    @unittest.skipIf(SKIP_HW_TESTS, 'audio hardware required.')
     def test_error_without_stream_start(self):
         with self.assertRaises(IOError):
             stream = self.p.open(channels=1,
@@ -47,6 +52,7 @@ class PyAudioErrorTests(unittest.TestCase):
                                  start=False)  # not starting stream
             stream.read(2)
 
+    @unittest.skipIf(SKIP_HW_TESTS, 'audio hardware required.')
     def test_error_writing_to_readonly_stream(self):
         with self.assertRaises(IOError):
             stream = self.p.open(channels=1,
@@ -55,6 +61,7 @@ class PyAudioErrorTests(unittest.TestCase):
                                  input=True)
             stream.write('foo')
 
+    @unittest.skipIf(SKIP_HW_TESTS, 'audio hardware required.')
     def test_error_negative_frames(self):
         with self.assertRaises(ValueError):
             stream = self.p.open(channels=1,
@@ -63,6 +70,7 @@ class PyAudioErrorTests(unittest.TestCase):
                                  input=True)
             stream.read(-1)
 
+    @unittest.skipIf(SKIP_HW_TESTS, 'audio hardware required.')
     def test_invalid_attr_on_closed_stream(self):
         stream = self.p.open(channels=1,
                              rate=44100,
@@ -81,6 +89,7 @@ class PyAudioErrorTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.p.is_format_supported(8000, 0, -1, pyaudio.paInt16)
 
+    @unittest.skipIf(SKIP_HW_TESTS, 'audio hardware required.')
     def test_write_underflow_exception(self):
         stream = self.p.open(channels=1,
                              rate=44100,
@@ -94,12 +103,15 @@ class PyAudioErrorTests(unittest.TestCase):
             return
 
         with self.assertRaises(IOError) as err:
-            time.sleep(0.5)
+            # The sleep time requires some tuning to invoke an underflow error,
+            # depending on the platform.
+            time.sleep(1)
             stream.write('\x00\x00\x00\x00', exception_on_underflow=True)
 
         self.assertEqual(err.exception.errno, pyaudio.paOutputUnderflowed)
         self.assertEqual(err.exception.strerror, 'Output underflowed')
 
+    @unittest.skipIf(SKIP_HW_TESTS, 'audio hardware required.')
     def test_read_overflow_exception(self):
         stream = self.p.open(channels=1,
                              rate=44100,

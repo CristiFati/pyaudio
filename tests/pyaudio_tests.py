@@ -13,6 +13,7 @@ device.
 """
 
 import math
+import os
 import struct
 import time
 import unittest
@@ -23,17 +24,29 @@ import numpy
 
 import pyaudio
 
+# To skip tests requiring hardware, set this environment variable:
+SKIP_HW_TESTS = 'PYAUDIO_SKIP_HW_TESTS' in os.environ
+# To run tests that require a loopback device (disabled by default), set this
+# variable. If SKIP_HW_TESTS is set, this variable has no effect.
+ENABLE_LOOPBACK_TESTS = 'PYAUDIO_ENABLE_LOOPBACK_TESTS' in os.environ
+
 DUMP_CAPTURE=False
 
 class PyAudioTests(unittest.TestCase):
     def setUp(self):
         self.p = pyaudio.PyAudio()
-        (self.loopback_input_idx,
-         self.loopback_output_idx) = self.get_audio_loopback()
-        assert (self.loopback_input_idx is None
-                or self.loopback_input_idx >= 0), "No loopback device found"
-        assert (self.loopback_output_idx is None
-                or self.loopback_output_idx >= 0), "No loopback device found"
+        self.loopback_input_idx = None
+        self.loopback_output_idx = None
+
+        if ENABLE_LOOPBACK_TESTS:
+            (self.loopback_input_idx,
+             self.loopback_output_idx) = self.get_audio_loopback()
+            self.assertTrue(
+                self.loopback_input_idx is None
+                or self.loopback_input_idx >= 0, "No loopback device found")
+            self.assertTrue(
+                self.loopback_output_idx is None
+                or self.loopback_output_idx >= 0, "No loopback device found")
 
     def tearDown(self):
         self.p.terminate()
@@ -71,6 +84,7 @@ class PyAudioTests(unittest.TestCase):
 
         return input_idx, output_idx
 
+    @unittest.skipIf(SKIP_HW_TESTS, 'Loopback device required.')
     def test_system_info(self):
         """Basic system info tests"""
         self.assertTrue(self.p.get_host_api_count() > 0)
@@ -78,6 +92,8 @@ class PyAudioTests(unittest.TestCase):
         api_info = self.p.get_host_api_info_by_index(0)
         self.assertTrue(len(api_info.items()) > 0)
 
+    @unittest.skipIf(SKIP_HW_TESTS or not ENABLE_LOOPBACK_TESTS,
+                     'Loopback device required.')
     def test_input_output_blocking(self):
         """Test blocking-based record and playback."""
         rate = 44100 # frames per second
@@ -138,6 +154,8 @@ class PyAudioTests(unittest.TestCase):
             test_signal,
             len(freqs))
 
+    @unittest.skipIf(SKIP_HW_TESTS or not ENABLE_LOOPBACK_TESTS,
+                     'Loopback device required.')
     def test_input_output_callback(self):
         """Test callback-based record and playback."""
         rate = 44100 # frames per second
@@ -207,6 +225,8 @@ class PyAudioTests(unittest.TestCase):
             test_signal,
             len(freqs))
 
+    @unittest.skipIf(SKIP_HW_TESTS or 'darwin' in sys.platform,
+                     'Loopback device required.')
     def test_device_lock_gil_order(self):
         """Ensure no deadlock between Pa_{Open,Start,Stop}Stream and GIL."""
         # This test targets OSX/macOS CoreAudio, which seems to use
@@ -257,11 +277,21 @@ class PyAudioTests(unittest.TestCase):
             output_device_index=self.loopback_output_idx,
             stream_callback=out_callback)
         out_stream.start_stream()
-
+        # The following will not work with CoreAudio on macOS. Even though we
+        # release the GIL, CoreAudio will hang when PortAudio calls CoreAudio's
+        # AudioOutputUnitStop() if the in_callback is still in the sleep() with
+        # the device lock. Even though in_callback eventually returns and
+        # releases the device lock, AudioOutputUnitStop remains blocked, and we
+        # deadlock. The workaround is to sleep longer here, so that in_callback
+        # completes, before calling stop_stream(). However, that defeats the
+        # purpose of this test.
+        #
+        # This test does work as-is on other platforms.
         time.sleep(0.1)
         in_stream.stop_stream()
         out_stream.stop_stream()
 
+    @unittest.skipIf(SKIP_HW_TESTS, 'Loopback device required.')
     def test_stream_state_gil(self):
         """Ensure no deadlock between Pa_IsStream{Active,Stopped} and GIL."""
         rate = 44100 # frames per second
@@ -274,7 +304,7 @@ class PyAudioTests(unittest.TestCase):
 
         def in_callback(in_data, frame_count, time_info, status):
             # Release the GIL for a bit
-            time.sleep(2)
+            time.sleep(1)
             return (None, pyaudio.paComplete)
 
         in_stream = self.p.open(
@@ -299,7 +329,7 @@ class PyAudioTests(unittest.TestCase):
         # then the GIL to call in_callback.
         in_stream.start_stream()
         # Wait a bit to let that callback thread start.
-        time.sleep(1)
+        time.sleep(0.5)
         # in_callback will eventually drop the GIL when executing
         # time.sleep (while retaining the device lock), allowing the
         # following code to run. Checking the state of the stream MUST
@@ -317,11 +347,11 @@ class PyAudioTests(unittest.TestCase):
         out_stream.start_stream()
         self.assertFalse(out_stream.is_stopped())
         self.assertTrue(out_stream.is_active())
-
-        time.sleep(0.1)
+        time.sleep(1)
         in_stream.stop_stream()
         out_stream.stop_stream()
 
+    @unittest.skipIf(SKIP_HW_TESTS, 'Loopback device required.')
     def test_get_stream_time_gil(self):
         """Ensure no deadlock between PA_GetStreamTime and GIL."""
         rate = 44100 # frames per second
@@ -334,7 +364,7 @@ class PyAudioTests(unittest.TestCase):
 
         def in_callback(in_data, frame_count, time_info, status):
             # Release the GIL for a bit
-            time.sleep(2)
+            time.sleep(1)
             return (None, pyaudio.paComplete)
 
         in_stream = self.p.open(
@@ -359,7 +389,7 @@ class PyAudioTests(unittest.TestCase):
         # then the GIL to call in_callback.
         in_stream.start_stream()
         # Wait a bit to let that callback thread start.
-        time.sleep(1)
+        time.sleep(0.5)
         # in_callback will eventually drop the GIL when executing
         # time.sleep (while retaining the device lock), allowing the
         # following code to run. Getting the stream time MUST not
@@ -372,10 +402,11 @@ class PyAudioTests(unittest.TestCase):
         self.assertGreater(in_stream.get_time(), -1)
         self.assertGreater(out_stream.get_time(), 1)
 
-        time.sleep(0.1)
+        time.sleep(1)
         in_stream.stop_stream()
         out_stream.stop_stream()
 
+    @unittest.skipIf(SKIP_HW_TESTS, 'Loopback device required.')
     def test_get_stream_cpuload_gil(self):
         """Ensure no deadlock between Pa_GetStreamCpuLoad and GIL."""
         rate = 44100 # frames per second
@@ -388,7 +419,7 @@ class PyAudioTests(unittest.TestCase):
 
         def in_callback(in_data, frame_count, time_info, status):
             # Release the GIL for a bit
-            time.sleep(2)
+            time.sleep(1)
             return (None, pyaudio.paComplete)
 
         in_stream = self.p.open(
@@ -413,7 +444,7 @@ class PyAudioTests(unittest.TestCase):
         # then the GIL to call in_callback.
         in_stream.start_stream()
         # Wait a bit to let that callback thread start.
-        time.sleep(1)
+        time.sleep(0.5)
         # in_callback will eventually drop the GIL when executing
         # time.sleep (while retaining the device lock), allowing the
         # following code to run. Getting the stream cpuload MUST not
@@ -425,11 +456,11 @@ class PyAudioTests(unittest.TestCase):
         # the device lock), leading to deadlock.
         self.assertGreater(in_stream.get_cpu_load(), -1)
         self.assertGreater(out_stream.get_cpu_load(), -1)
-
-        time.sleep(0.1)
+        time.sleep(1)
         in_stream.stop_stream()
         out_stream.stop_stream()
 
+    @unittest.skipIf(SKIP_HW_TESTS, 'Loopback device required.')
     def test_get_stream_write_available_gil(self):
         """Ensure no deadlock between Pa_GetStreamWriteAvailable and GIL."""
         rate = 44100 # frames per second
@@ -439,7 +470,7 @@ class PyAudioTests(unittest.TestCase):
 
         def in_callback(in_data, frame_count, time_info, status):
             # Release the GIL for a bit
-            time.sleep(2)
+            time.sleep(1)
             return (None, pyaudio.paComplete)
 
         in_stream = self.p.open(
@@ -462,7 +493,7 @@ class PyAudioTests(unittest.TestCase):
         # then the GIL to call in_callback.
         in_stream.start_stream()
         # Wait a bit to let that callback thread start.
-        time.sleep(1)
+        time.sleep(0.5)
         # in_callback will eventually drop the GIL when executing
         # time.sleep (while retaining the device lock), allowing the
         # following code to run. Getting the stream write available MUST not
@@ -474,9 +505,10 @@ class PyAudioTests(unittest.TestCase):
         # the device lock), leading to deadlock.
         self.assertGreater(out_stream.get_write_available(), -1)
 
-        time.sleep(0.1)
+        time.sleep(1)
         in_stream.stop_stream()
 
+    @unittest.skipIf(SKIP_HW_TESTS, 'Loopback device required.')
     def test_get_stream_read_available_gil(self):
         """Ensure no deadlock between Pa_GetStreamReadAvailable and GIL."""
         rate = 44100 # frames per second
@@ -486,7 +518,7 @@ class PyAudioTests(unittest.TestCase):
 
         def out_callback(in_data, frame_count, time_info, status):
             # Release the GIL for a bit
-            time.sleep(2)
+            time.sleep(1)
             return (None, pyaudio.paComplete)
 
         in_stream = self.p.open(
@@ -509,7 +541,7 @@ class PyAudioTests(unittest.TestCase):
         # then the GIL to call in_callback.
         out_stream.start_stream()
         # Wait a bit to let that callback thread start.
-        time.sleep(1)
+        time.sleep(0.5)
         # in_callback will eventually drop the GIL when executing
         # time.sleep (while retaining the device lock), allowing the
         # following code to run. Getting the stream read available MUST not
@@ -521,9 +553,11 @@ class PyAudioTests(unittest.TestCase):
         # the device lock), leading to deadlock.
         self.assertGreater(in_stream.get_read_available(), -1)
 
-        time.sleep(0.1)
+        time.sleep(1)
         in_stream.stop_stream()
 
+    @unittest.skipIf(SKIP_HW_TESTS or 'darwin' in sys.platform,
+                     'Loopback device required.')
     def test_terminate_gil(self):
         """Ensure no deadlock between Pa_Terminate and GIL."""
         rate = 44100 # frames per second
@@ -533,7 +567,7 @@ class PyAudioTests(unittest.TestCase):
 
         def out_callback(in_data, frame_count, time_info, status):
             # Release the GIL for a bit
-            time.sleep(2)
+            time.sleep(1)
             return (None, pyaudio.paComplete)
 
         out_stream = self.p.open(
@@ -549,7 +583,7 @@ class PyAudioTests(unittest.TestCase):
         # then the GIL to call in_callback.
         out_stream.start_stream()
         # Wait a bit to let that callback thread start.
-        time.sleep(1)
+        time.sleep(0.5)
         # in_callback will eventually drop the GIL when executing
         # time.sleep (while retaining the device lock), allowing the
         # following code to run. Terminating PyAudio MUST not
@@ -559,6 +593,17 @@ class PyAudioTests(unittest.TestCase):
         # holding the GIL), while the in_callback thread will be
         # waiting for the GIL once time.sleep completes (while holding
         # the device lock), leading to deadlock.
+        #
+        # Note: The following will not work with CoreAudio on macOS. Even though
+        # we release the GIL, CoreAudio will hang when PortAudio calls
+        # CoreAudio's AudioOutputUnitStop() if the in_callback is still in the
+        # sleep() with the device lock. Even though in_callback eventually
+        # returns and releases the device lock, AudioOutputUnitStop remains
+        # blocked, and we deadlock. The workaround is to sleep longer here, so
+        # that in_callback completes, before calling stop_stream(). However,
+        # that defeats the purpose of this test.
+        #
+        # This test does work as-is on other platforms.
         self.p.terminate()
 
     @staticmethod
