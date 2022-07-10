@@ -16,6 +16,7 @@ import math
 import os
 import struct
 import time
+import threading
 import unittest
 import wave
 import sys
@@ -225,71 +226,41 @@ class PyAudioTests(unittest.TestCase):
             test_signal,
             len(freqs))
 
-    @unittest.skipIf(SKIP_HW_TESTS or 'darwin' in sys.platform,
-                     'Loopback device required.')
+    @unittest.skipIf(SKIP_HW_TESTS, 'Loopback device required.')
     def test_device_lock_gil_order(self):
         """Ensure no deadlock between Pa_{Open,Start,Stop}Stream and GIL."""
-        # This test targets OSX/macOS CoreAudio, which seems to use
-        # audio device locks. On ALSA and Win32 MME, this problem
-        # doesn't seem to appear despite not releasing the GIL when
-        # calling into PortAudio.
-        rate = 44100 # frames per second
-        width = 2    # bytes per sample
-        channels = 2
-        frames_per_chunk = 1024
-
-        def out_callback(_, frame_count, time_info, status):
-            return ('', pyaudio.paComplete)
-
+        # This test targets macOS CoreAudio, which seems to use audio device
+        # locks. The test is less relevant on ALSA and Win32 MME, which don't
+        # seem to suffer even if the GIL is held while calling PortAudio.
         def in_callback(in_data, frame_count, time_info, status):
-            # Release the GIL for a bit
-            time.sleep(2)
-            return (None, pyaudio.paComplete)
+            # Release the GIL for a bit, but on macOS, still hold the device
+            # lock.
+            time.sleep(1)
+            # Note: on macOS, must return paContinue; paComplete will deadlock
+            # in the underlying call to AudioOutputUnitStop.
+            return (None, pyaudio.paContinue)
 
         in_stream = self.p.open(
-            format=self.p.get_format_from_width(width),
-            channels=channels,
-            rate=rate,
+            format=self.p.get_format_from_width(2),
+            channels=2,
+            rate=44100,
             input=True,
             start=False,
-            frames_per_buffer=frames_per_chunk,
             input_device_index=self.loopback_input_idx,
             stream_callback=in_callback)
         # In a separate (C) thread, portaudio/driver will grab the device lock,
         # then the GIL to call in_callback.
         in_stream.start_stream()
         # Wait a bit to let that callback thread start.
-        time.sleep(1)
-        # in_callback will eventually drop the GIL when executing
-        # time.sleep (while retaining the device lock), allowing the
-        # following code to run. Opening a stream and starting it MUST
-        # release the GIL before attempting to acquire the device
-        # lock. Otherwise, the following code will wait for the device
-        # lock (while holding the GIL), while the in_callback thread
-        # will be waiting for the GIL once time.sleep completes (while
-        # holding the device lock), leading to deadlock.
-        out_stream = self.p.open(
-            format=self.p.get_format_from_width(width),
-            channels=channels,
-            rate=rate,
-            output=True,
-            frames_per_buffer=frames_per_chunk,
-            output_device_index=self.loopback_output_idx,
-            stream_callback=out_callback)
-        out_stream.start_stream()
-        # The following will not work with CoreAudio on macOS. Even though we
-        # release the GIL, CoreAudio will hang when PortAudio calls CoreAudio's
-        # AudioOutputUnitStop() if the in_callback is still in the sleep() with
-        # the device lock. Even though in_callback eventually returns and
-        # releases the device lock, AudioOutputUnitStop remains blocked, and we
-        # deadlock. The workaround is to sleep longer here, so that in_callback
-        # completes, before calling stop_stream(). However, that defeats the
-        # purpose of this test.
-        #
-        # This test does work as-is on other platforms.
-        time.sleep(0.1)
+        time.sleep(0.5)
+        # in_callback will eventually drop the GIL when executing time.sleep
+        # (while retaining the device lock), allowing the following code to
+        # run. All stream operations MUST release the GIL before attempting to
+        # acquire the device lock. If that discipline is violated, the following
+        # code would wait for the device lock while holding the GIL, while the
+        # in_callback thread would be waiting for the GIL once time.sleep
+        # completes (while holding the device lock), leading to deadlock.
         in_stream.stop_stream()
-        out_stream.stop_stream()
 
     @unittest.skipIf(SKIP_HW_TESTS, 'Loopback device required.')
     def test_stream_state_gil(self):
@@ -556,54 +527,53 @@ class PyAudioTests(unittest.TestCase):
         time.sleep(1)
         in_stream.stop_stream()
 
-    @unittest.skipIf(SKIP_HW_TESTS or 'darwin' in sys.platform,
-                     'Loopback device required.')
+    @unittest.skipIf(SKIP_HW_TESTS, 'Loopback device required.')
     def test_terminate_gil(self):
         """Ensure no deadlock between Pa_Terminate and GIL."""
-        rate = 44100 # frames per second
-        width = 2    # bytes per sample
+        # This test targets macOS CoreAudio, which seems to use audio device
+        # locks. The test is less relevant on ALSA and Win32 MME, which don't
+        # seem to suffer even if the GIL is held while calling PortAudio.
+        width = 2
         channels = 2
-        frames_per_chunk = 1024
+        bytes_per_frame = width * channels
+        event = threading.Event()
 
         def out_callback(in_data, frame_count, time_info, status):
-            # Release the GIL for a bit
-            time.sleep(1)
-            return (None, pyaudio.paComplete)
+            event.set()
+            time.sleep(0.5)  # Release the GIL for a bit
+            event.clear()
+            return (b'\1' * frame_count * bytes_per_frame, pyaudio.paContinue)
 
         out_stream = self.p.open(
             format=self.p.get_format_from_width(width),
             channels=channels,
-            rate=rate,
+            rate=44100,
             output=True,
             start=False,
-            frames_per_buffer=frames_per_chunk,
             output_device_index=self.loopback_output_idx,
             stream_callback=out_callback)
         # In a separate (C) thread, portaudio/driver will grab the device lock,
         # then the GIL to call in_callback.
         out_stream.start_stream()
-        # Wait a bit to let that callback thread start.
-        time.sleep(0.5)
-        # in_callback will eventually drop the GIL when executing
-        # time.sleep (while retaining the device lock), allowing the
-        # following code to run. Terminating PyAudio MUST not
-        # require the device lock, but if it does, it must release the
-        # GIL before attempting to acquire the device lock. Otherwise,
-        # the following code will wait for the device lock (while
-        # holding the GIL), while the in_callback thread will be
-        # waiting for the GIL once time.sleep completes (while holding
-        # the device lock), leading to deadlock.
+        # Wait a bit to let that callback thread start. For output streams on
+        # macOS, it's important to have one complete call to out_callback before
+        # attempting to terminate. Otherwise, the underlying call to
+        # AudioOutputUnitStop will deadlock.
+        time.sleep(0.6)
+        # out_callback will eventually drop the GIL when executing time.sleep
+        # (while retaining the device lock), allowing the following code to
+        # run. Terminating PyAudio MUST release the GIL before attempting to
+        # acquire the device lock (if the lock is needed). If that discipline is
+        # violated, the following code would wait for the device lock while
+        # holding the GIL, while the out_callback thread would be waiting for
+        # the GIL once time.sleep completes (while holding the device lock),
+        # leading to deadlock.
         #
-        # Note: The following will not work with CoreAudio on macOS. Even though
-        # we release the GIL, CoreAudio will hang when PortAudio calls
-        # CoreAudio's AudioOutputUnitStop() if the in_callback is still in the
-        # sleep() with the device lock. Even though in_callback eventually
-        # returns and releases the device lock, AudioOutputUnitStop remains
-        # blocked, and we deadlock. The workaround is to sleep longer here, so
-        # that in_callback completes, before calling stop_stream(). However,
-        # that defeats the purpose of this test.
-        #
-        # This test does work as-is on other platforms.
+        # Wait until out_callback is about to sleep, plus a little extra to
+        # help ensure that sleep() is called first before we concurrently call
+        # into self.p.terminate().
+        event.wait()
+        time.sleep(0.1)
         self.p.terminate()
 
     @staticmethod
