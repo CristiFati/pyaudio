@@ -1,5 +1,5 @@
 ======================================================================
-PyAudio v0.2.11: Python Bindings for PortAudio.
+PyAudio v0.2.12: Python Bindings for PortAudio.
 ======================================================================
 
 See: http://people.csail.mit.edu/hubert/pyaudio/
@@ -8,7 +8,7 @@ PyAudio provides Python bindings for PortAudio v19, the cross-platform
 audio I/O library. Using PyAudio, you can easily use Python to play
 and record audio on a variety of platforms.
 
-See INSTALL for compilation hints.
+See INSTALL for installation and compilation hints.
 
 ======================================================================
 
