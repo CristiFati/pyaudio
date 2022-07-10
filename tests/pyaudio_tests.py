@@ -576,6 +576,58 @@ class PyAudioTests(unittest.TestCase):
         time.sleep(0.1)
         self.p.terminate()
 
+    @unittest.skipIf(SKIP_HW_TESTS, 'Loopback device required.')
+    def test_return_none_callback(self):
+        """Ensure that return None ends the stream."""
+        num_times_called = 0
+
+        def out_callback(_, frame_count, time_info, status):
+            nonlocal num_times_called
+            num_times_called += 1
+            return (None, pyaudio.paContinue)
+
+        out_stream = self.p.open(
+            format=self.p.get_format_from_width(2),
+            channels=2,
+            rate=44100,
+            output=True,
+            output_device_index=self.loopback_output_idx,
+            stream_callback=out_callback)
+        out_stream.start_stream()
+        time.sleep(0.5)
+        out_stream.stop_stream()
+        self.assertEqual(num_times_called, 1)
+
+    @unittest.skipIf(SKIP_HW_TESTS, 'Loopback device required.')
+    def test_excess_output_callback(self):
+        """Ensure that returning more bytes than allowed does not fail."""
+        num_times_called = 0
+        width = 2
+        channels = 2
+        bytes_per_frame = width * channels
+
+        def out_callback(_, frame_count, time_info, status):
+            nonlocal num_times_called
+            num_times_called += 1
+            # Make sure this is called twice, so we know that the first time
+            # didn't crash (at least).
+            result = (pyaudio.paComplete
+                      if num_times_called == 2 else pyaudio.paContinue)
+            max_allowed_bytes = frame_count * bytes_per_frame
+            return (b'\1' * (max_allowed_bytes * 2), result)
+
+        out_stream = self.p.open(
+            format=self.p.get_format_from_width(width),
+            channels=channels,
+            rate=44100,
+            output=True,
+            output_device_index=self.loopback_output_idx,
+            stream_callback=out_callback)
+        out_stream.start_stream()
+        time.sleep(0.5)
+        out_stream.stop_stream()
+        self.assertEqual(num_times_called, 2)
+
     @staticmethod
     def create_reference_signal(freqs, sampling_rate, width, duration):
         """Return reference signal with several sinuoids with frequencies

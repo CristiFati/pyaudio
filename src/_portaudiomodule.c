@@ -24,6 +24,7 @@
  * SOFTWARE.
  */
 
+#include <assert.h>
 #include <stdio.h>
 #define PY_SSIZE_T_CLEAN
 #include "Python.h"
@@ -36,17 +37,6 @@
 
 #define DEFAULT_FRAMES_PER_BUFFER paFramesPerBufferUnspecified
 /* #define VERBOSE */
-
-// Fix for Win32, as recommended by Tomasz Gandor:
-// https://stackoverflow.com/questions/53936589/installing-pyaudio-on-windows
-#ifndef _MSC_VER
-#define min(a, b)           \
-  ({                        \
-    __typeof__(a) _a = (a); \
-    __typeof__(b) _b = (b); \
-    _a < _b ? _a : _b;      \
-  })
-#endif
 
 /************************************************************
  *
@@ -1369,12 +1359,20 @@ int _stream_callback_cfunction(const void *input, void *output,
   // Copy bytes for playback only if this is an output stream:
   if (output) {
     char *output_data = (char *)output;
-    long pa_num_bytes = bytes_per_frame * frameCount;
-    memcpy(output_data, pData, min(output_len, pa_num_bytes));
+    size_t pa_max_num_bytes = bytes_per_frame * frameCount;
+    // Though PyArg_ParseTuple returns the size of pData in output_len, a signed
+    // Py_ssize_t, that value should never be negative.
+    assert(output_len >= 0);
+    // Only copy min(output_len, pa_max_num_bytes) bytes.
+    size_t bytes_to_copy = (size_t)output_len < pa_max_num_bytes ?
+      (size_t)output_len : pa_max_num_bytes;
+    if (pData != NULL && bytes_to_copy > 0) {
+      memcpy(output_data, pData, bytes_to_copy);
+    }
     // Pad out the rest of the buffer with 0s if callback returned
     // too few frames (and assume paComplete).
-    if (output_len < pa_num_bytes) {
-      memset(output_data + output_len, 0, pa_num_bytes - output_len);
+    if (bytes_to_copy < pa_max_num_bytes) {
+      memset(output_data + bytes_to_copy, 0, pa_max_num_bytes - bytes_to_copy);
       return_val = paComplete;
     }
   }
