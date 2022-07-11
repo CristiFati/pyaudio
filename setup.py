@@ -1,29 +1,29 @@
-"""
-PyAudio v0.2.12: Python Bindings for PortAudio.
+"""PyAudio: Python Bindings for PortAudio.
+
+PyAudio provides Python bindings for PortAudio, the cross-platform audio I/O
+library. With PyAudio, you can easily use Python to play and record audio on a
+variety of platforms, such as GNU/Linux, Microsoft Windows, and Apple macOS.
+
+PyAudio is distributed under the MIT License:
 
 Copyright (c) 2006 Hubert Pham
 
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
+Permission is hereby granted, free of charge, to any person obtaining a copy of
+this software and associated documentation files (the "Software"), to deal in
+the Software without restriction, including without limitation the rights to
+use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+the Software, and to permit persons to whom the Software is furnished to do so,
+subject to the following conditions:
 
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY
-OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT
-LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND
-NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS
-OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
-DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
-OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
-USE OR OTHER DEALINGS IN THE SOFTWARE.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
 
 import os
@@ -116,10 +116,20 @@ setup(
     name='PyAudio',
     version=__version__,
     author="Hubert Pham",
-    url="http://people.csail.mit.edu/hubert/pyaudio/",
-    description='PortAudio Python Bindings',
+    url="https://people.csail.mit.edu/hubert/pyaudio/",
+    description='Python Bindings for PortAudio',
     long_description=__doc__.lstrip(),
+    license="MIT",
     scripts=[],
     py_modules=['pyaudio'],
     package_dir={'': 'src'},
-    ext_modules=[setup_extension()])
+    extras_require={
+        "test": ["numpy"],
+    },
+    ext_modules=[setup_extension()],
+    classifiers=[
+        "Development Status :: 4 - Beta",
+        "License :: OSI Approved :: MIT License",
+        "Programming Language :: Python :: 3",
+        "Topic :: Multimedia :: Sound/Audio"
+    ])
