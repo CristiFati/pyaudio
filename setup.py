@@ -1,4 +1,4 @@
-"""PyAudio: Python Bindings for PortAudio.
+"""PyAudio: Cross-platform audio I/O with PortAudio.
 
 PyAudio provides Python bindings for PortAudio, the cross-platform audio I/O
 library. With PyAudio, you can easily use Python to play and record audio on a
@@ -112,13 +112,18 @@ def setup_extension():
         library_dirs=external_libraries_path)
 
 
+with open('README.md', 'r') as fh:
+    long_description = fh.read()
+
+
 setup(
     name='PyAudio',
     version=__version__,
     author="Hubert Pham",
     url="https://people.csail.mit.edu/hubert/pyaudio/",
-    description='Python Bindings for PortAudio',
-    long_description=__doc__.lstrip(),
+    description="Cross-platform audio I/O with PortAudio",
+    long_description=long_description,
+    long_description_content_type='text/markdown',
     license="MIT",
     scripts=[],
     py_modules=['pyaudio'],
