@@ -2,12 +2,12 @@
 
 .PHONY: docs clean build
 
-VERSION := 0.2.11
+VERSION := 0.2.12
 PYTHON ?= python
 BUILD_ARGS ?=
 SPHINX ?= sphinx-build
 DOCS_OUTPUT=docs/
-PYTHON_BUILD_DIR:=$(shell $(PYTHON) -c "import distutils.util; import sys; print(distutils.util.get_platform() + '-' + sys.version[0:3])")
+PYTHON_BUILD_DIR:=$(shell $(PYTHON) -c "import distutils.util; import sys; print(f'{distutils.util.get_platform()}-{sys.version_info[0]}.{sys.version_info[1]}')")
 BUILD_DIR:=lib.$(PYTHON_BUILD_DIR)
 BUILD_STAMP:=$(BUILD_DIR)/build
 SRCFILES := src/*.c src/*.h src/*.py

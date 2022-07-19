@@ -1,3 +1,52 @@
+2022-07-18  Hubert Pham  <hubert@mit.edu>
+
+  PyAudio 0.2.12
+
+  - Modernize build process for Microsoft Windows, using the native toolchain.
+
+    Setuptool setup.py and INSTALL instructions are more streamlined.
+    Building from Cygwin/MinGW is no longer supported nor tested.
+
+    Thanks to Sean Zimmermann for the patches and general help!
+
+  - Change default frames per buffer size to paFramesPerBufferUnspecified.
+
+    Previously, pyaudio.py set a default frames per buffer size of 1024,
+    which can lead to dropped frames on some systems.  Now, by default,
+    PortAudio selects the buffer size based on host and latency
+    requirements.
+
+    Thanks to Jason Hihn for the suggestion!
+
+  - Minor fixes and refactoring for compatibility with Python 3.7+.
+
+    Updates include:
+    * Remove call to deprecated PyEval_InitThreads() for Python 3.7+
+    * Use Py_ssize_t types in appropriate places (for Python 3.10+).
+    * Remove the min macro to ease compilation for Windows.
+
+  - Use the locale's preferred encoding to decode device names.
+
+    Thanks to Eiichi Takamori for the patch!
+
+  - Unit tests: add skipIf decorators to skip tests that require hardware.
+
+    Set the PYAUDIO_SKIP_HW_TESTS environment variable to disable tests that
+    require sound hardware, useful for (automated) test environments without
+    access to audio devices.
+
+    Thanks to Matěj Cepl for the suggestion and patch!
+
+  - Documentation, examples, and unit tests: various fixes.
+
+    * Add more unit tests and repair a few that test the GIL on macOS.
+    * Remove examples/error.py, which is redundant with tests/error_tests.py.
+    * Fix type documentation of return value types in docstrings.
+
+    Thanks to Vasily Zakharov for pointing out the return-value type errors!
+
+  - Modernize packaging: add LICENSE.txt, pyproject.toml, and classifiers.
+
 2017-03-18  Hubert Pham  <hubert@mit.edu>
 
   PyAudio 0.2.11

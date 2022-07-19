@@ -106,10 +106,10 @@ Overview
 """
 
 __author__ = "Hubert Pham"
-__version__ = "0.2.11"
+__version__ = "0.2.12"
 __docformat__ = "restructuredtext en"
 
-import sys
+import locale
 
 # attempt to import PortAudio
 try:
@@ -195,6 +195,10 @@ paOutputUnderflow = pa.paOutputUnderflow #: Buffer underflow in output
 paOutputOverflow  = pa.paOutputOverflow  #: Buffer overflow in output
 paPrimingOutput   = pa.paPrimingOutput   #: Just priming, not playing yet
 
+###### portaudio misc ######
+
+paFramesPerBufferUnspecified = pa.paFramesPerBufferUnspecified
+
 ############################################################
 # Convenience Functions
 ############################################################
@@ -245,7 +249,7 @@ def get_portaudio_version():
     """
     Returns portaudio version.
 
-    :rtype: string
+    :rtype: int
     """
 
     return pa.get_version()
@@ -295,7 +299,7 @@ class Stream:
                  output=False,
                  input_device_index=None,
                  output_device_index=None,
-                 frames_per_buffer=1024,
+                 frames_per_buffer=pa.paFramesPerBufferUnspecified,
                  start=True,
                  input_host_api_specific_stream_info=None,
                  output_host_api_specific_stream_info=None,
@@ -598,7 +602,7 @@ class Stream:
            to True.
         :raises IOError: if stream is not an input stream
           or if the read operation was unsuccessful.
-        :rtype: string
+        :rtype: bytes
         """
 
         if not self._is_input:
@@ -991,7 +995,8 @@ class PyAudio:
         device_name = device_info.name
 
         # Attempt to decode device_name
-        for codec in ["utf-8", "cp1252"]:
+        os_encoding = locale.getpreferredencoding(do_setlocale=False)
+        for codec in [os_encoding, "utf-8"]:
             try:
                 device_name = device_name.decode(codec)
                 break
