@@ -1,90 +1,116 @@
-======================================================================
-PyAudio Compilation Hints
-======================================================================
+================================================================================
+PyAudio Installation and Compilation Hints
+================================================================================
 
-Here are some hints for compiling PortAudio and PyAudio on various
-platforms:
+Install PyAudio using pip on most platforms.
 
-    * General UNIX Guide: (GNU/Linux, Mac OS X, Cygwin)
-    * Microsoft Windows (native)
-
-Generally speaking, installation involves building the PortAudio v19
-library and then building PyAudio.
-
-----------------------------------------------------------------------
-General UNIX Guide (GNU/Linux, Mac OS X, Cygwin)
-----------------------------------------------------------------------
-
-1. Use a package manager to install PortAudio v19.
-
-   To build PortAudio from source instead, extract the source and run:
-
-   % ./configure
-   % make
-   % make install # you may need to be root
-
-2. Extract PyAudio.  To build and install, run:
-
-   % python setup.py install
-
-----------------------------------------------------------------------
+--------------------------------------------------------------------------------
 Microsoft Windows
-----------------------------------------------------------------------
+--------------------------------------------------------------------------------
+Pip will fetch and install PyAudio pre-compiled wheels. These wheels statically
+link PortAudio v19 built with the native toolchain.  They support Windows MME,
+DirectSound, WASAPI, and WDM-KS, but not ASIO.
 
-Targeting native Win32 Python will require either Microsoft Visual
-Studio or MinGW (via Cygwin).  Here are compilation hints for using
-MinGW under the Cygwin build environment.
+  > python -m pip install pyaudio
 
-Note: I've only tested this under Cygwin's build environment. Your
-mileage may vary in other environments (i.e., compiling PortAudio with
-MinGW's compiler).
 
-1. Install cygwin's gcc and mingw packages.
+--------------------------------------------------------------------------------
+Apple macOS
+--------------------------------------------------------------------------------
+Use a package manager (e.g. Homebrew) to install the PortAudio library, then
+install PyAudio using pip:
 
-2. Download PortAudio and build.  When running configure, be sure to
-   specify the MinGW compiler (via a CC environment variable) to
-   generate native Win32 binaries:
+  % brew install portaudio
+  % pip install pyaudio
 
-      % CC=i686-w64-mingw32-gcc ./configure --enable-static --with-pic
-      % make
 
-3. Before building PyAudio, apply a few necessary modifications:
+--------------------------------------------------------------------------------
+Most GNU/Linux distributions
+--------------------------------------------------------------------------------
+Use a package manager to install PyAudio. For example, on Debian/Ubuntu:
 
-   a. Python distutils calls ``gcc'' to build the C extension, so
-      temporarily move your MinGW compiler to /usr/bin/gcc.
+  % sudo apt install python3-pyaudio
 
-   b. Modify Python's Lib/distutils/cygwincompiler.py so that
-      mscvr900.dll is not included in the build.  See:
-      http://bugs.python.org/issue16472.
+If the latest version of PyAudio is not available, install it using pip. pip
+will download the PyAudio source and build it for your system. Be sure to
+install the python and PortAudio development library first.
 
-      Both Python 2.7 and Python 3+ require similar modification.
 
-   c. For some versions of Python (e.g., Python 2.7 32-bit), it is
-      necessary to further modify Python's
-      Lib/distutils/cygwincompiler.py and remove references to
-      -cmingw32, a flag which is no longer supported.
-      See http://hg.python.org/cpython/rev/6b89176f1be5/.
+--------------------------------------------------------------------------------
+Compiling from source (GNU/Linux, macOS, and POSIX-like platforms)
+--------------------------------------------------------------------------------
+For most platforms, compiling from source is similar to the
+instructions above for GNU/Linux: obtain or compile PortAudio, and
+then build PyAudio. To manually build PyAudio from source (rather than
+relying on pip):
 
-   d. For some versions of 64-bit Python 3 (e.g., Python 3.2, 3.3, 3.4),
-      it is necessary to generate .a archive of the Python DLL.
-      See https://bugs.python.org/issue20785. Example for Python 3.4:
+  % python setup.py build
 
-      % cd /path/to/Python34-x64/libs/
-      % gendef /path/to/Windows/System32/python34.dll
-      % dlltool --as-flags=--64 -m i386:x64-64 -k --output-lib libpython34.a \
-          --input-def python34.def
+You can then use pip to install PyAudio (pip install .) or create wheels.
 
-4. To build PyAudio, run:
 
-      % PORTAUDIO_PATH=/path/to/portaudio_tree /path/to/win/python \
-            setup.py build --static-link -cmingw32
+--------------------------------------------------------------------------------
+Compiling from source (Microsoft Windows & VCPKG)
+--------------------------------------------------------------------------------
+Microsoft provides a C/C++ package manager called vcpkg, which can install
+PortAudio on Windows along with any necessary headers. You'll need a copy of
+both Visual Studio with the C compilers installed, as well as vcpkg.
 
-   Be sure to invoke the native Win32 python rather than cygwin's
-   python.  The --static-link option statically links in the PortAudio
-   library to the PyAudio module.
+To install PortAudio with static linking, run:
 
-5. To install PyAudio:
+  For 32-bit builds:
+  > vcpkg install portaudio:x86-windows-static
 
-      % python setup.py install --skip-build
+  For 64-bit builds:
+  > vcpkg install portaudio:x64-windows-static
 
-   Or create a Python wheel and install using pip.
+This will place PortAudio headers and libraries into your vcpkg install folder
+(assuming vcpkg.exe is in C:\vcpkg, this would be C:\vcpkg\installed).
+
+PortAudio headers will be in
+C:\vcpkg\installed\{x86,x64}-windows-static\include, and the library will be in
+C:\vcpkg\installed\{x86,x64}-windows-static\lib, assuming that vcpkg has the
+install root at C:\vcpkg\installed).
+
+To build this python package with those libraries, run:
+  > set VCPKG_PATH=C:\vcpkg\installed\x86-windows-static (or x64-windows-static)
+  > python setup.py build
+
+To distribute it to users as a binary wheel, run:
+  > python setup.py bdist_wheel
+
+The generated wheel will be placed in the dist folder, and can be copied to any
+target machine and installed with 'pip install PYAUDIO_WHEEL.whl'.
+
+
+Without VCPKG
+--------------------------------------------------------------------------------
+If you prefer not to use VCPKG, you can build PortAudio directly using the
+standard Windows compiler chain. You will need Visual Studio with the C compiler
+installed, and a copy of CMake.
+
+Once you have the PortAudio sources, run the following from the sources
+directory:
+
+  > mkdir mybuild
+  > cd mybuild
+  > cmake ..                          # Generates build with default options.
+                                      # You can also run cmake-gui ..
+  > cmake --build . --config Release  # Build the library in release mode.
+
+This will generate ./Release/portaudio_static_x86.lib (or
+portaudio_static_x64.lib for 64-bit builds).
+
+We can now build pyaudio. For this example, we'll assume your PortAudio sources
+are in the same folder as pyaudio.
+
+  > python setup.py build_ext `
+    -I .\portaudio\include `
+    -L .\portaudio\mybuild\Release `
+    -l portaudio_static_x86  (or portaudio_static_x64)
+
+To distribute it to users as a binary wheel, run:
+  > python setup.py bdist_wheel
+
+The generated wheel will be placed in the dist folder, and can be copied to any
+target machine and installed with 'pip install PYAUDIO_WHEEL.whl'.

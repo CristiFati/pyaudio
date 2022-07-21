@@ -1,123 +1,140 @@
-"""
-PyAudio v0.2.11: Python Bindings for PortAudio.
+"""PyAudio: Cross-platform audio I/O with PortAudio.
+
+PyAudio provides Python bindings for PortAudio, the cross-platform audio I/O
+library. With PyAudio, you can easily use Python to play and record audio on a
+variety of platforms, such as GNU/Linux, Microsoft Windows, and Apple macOS.
+
+PyAudio is distributed under the MIT License:
 
 Copyright (c) 2006 Hubert Pham
 
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
+Permission is hereby granted, free of charge, to any person obtaining a copy of
+this software and associated documentation files (the "Software"), to deal in
+the Software without restriction, including without limitation the rights to
+use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+the Software, and to permit persons to whom the Software is furnished to do so,
+subject to the following conditions:
 
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY
-OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT
-LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND
-NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS
-OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
-DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
-OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
-USE OR OTHER DEALINGS IN THE SOFTWARE.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
 
 import os
+import logging
 import platform
+from setuptools import setup, Extension
 import sys
-try:
-    from setuptools import setup, Extension
-except ImportError:
-    from distutils.core import setup, Extension
 
-__version__ = "0.2.11"
+__version__ = "0.2.12"
 
-# distutils will try to locate and link dynamically against portaudio.
+# setup.py/setuptools will try to locate and link dynamically against portaudio,
+# except on Windows. On Windows, setup.py will attempt to statically link in
+# portaudio, since most users will install PyAudio from pre-compiled wheels.
 #
-# If you would rather statically link in the portaudio library (e.g.,
-# typically on Microsoft Windows), run:
-#
-# % python setup.py build --static-link
-#
-# Specify the environment variable PORTAUDIO_PATH with the build tree
-# of PortAudio.
+# If you wish to compile PyAudio on Windows, use vcpkg to install portaudio with
+# either:
+#  - vcpkg install portaudio (for dynamic linking)
+#  - vcpkg install portaudio:x86-windows-static (for 32-bit static linking)
+#  - vcpkg install portaudio:x64-windows-static (for 64-bit static linking)
 
-STATIC_LINKING = False
+MAC_SYSROOT_PATH = os.environ.get("SYSROOT_PATH", None)
+WIN_VCPKG_PATH = os.environ.get("VCPKG_PATH", None)
 
-if "--static-link" in sys.argv:
-    STATIC_LINKING = True
-    sys.argv.remove("--static-link")
-
-portaudio_path = os.environ.get("PORTAUDIO_PATH", "./portaudio-v19")
-mac_sysroot_path = os.environ.get("SYSROOT_PATH", None)
-
-pyaudio_module_sources = ['src/_portaudiomodule.c']
-include_dirs = []
-external_libraries = []
-extra_compile_args = []
-extra_link_args = []
-scripts = []
-defines = []
-
-if sys.platform == 'darwin':
-    defines += [('MACOSX', '1')]
-    if mac_sysroot_path:
-        extra_compile_args += ["-isysroot", mac_sysroot_path]
-        extra_link_args += ["-isysroot", mac_sysroot_path]
-elif sys.platform == 'win32':
-    bits = platform.architecture()[0]
-    if '64' in bits:
-        defines.append(('MS_WIN64', '1'))
-
-if not STATIC_LINKING:
-    external_libraries = ['portaudio']
+def setup_extension():
+    pyaudio_module_sources = ['src/_portaudiomodule.c']
+    include_dirs = []
+    external_libraries = ["portaudio"]
+    external_libraries_path = []
+    extra_compile_args = []
     extra_link_args = []
-else:
-    include_dirs = [os.path.join(portaudio_path, 'include/')]
-    extra_link_args = [
-        os.path.join(portaudio_path, 'lib/.libs/libportaudio.a')
-        ]
+    defines = []
 
-    # platform specific configuration
     if sys.platform == 'darwin':
-        extra_link_args += ['-framework', 'CoreAudio',
-                            '-framework', 'AudioToolbox',
-                            '-framework', 'AudioUnit',
-                            '-framework', 'Carbon']
-    elif sys.platform == 'cygwin':
-        external_libraries += ['winmm']
-        extra_link_args += ['-lwinmm']
-    elif sys.platform == 'win32':
-        # i.e., Win32 Python with mingw32
-        # run: python setup.py build -cmingw32
-        external_libraries += ['winmm']
-        extra_link_args += ['-lwinmm']
-    elif sys.platform == 'linux2':
-        extra_link_args += ['-lrt', '-lm', '-lpthread']
-        # GNU/Linux has several audio systems (backends) available; be
-        # sure to specify the desired ones here.  Start with ALSA and
-        # JACK, since that's common today.
-        extra_link_args += ['-lasound', '-ljack']
+        # Support only dynamic linking with portaudio, since the supported path
+        # is to install portaudio using a package manager (e.g., Homebrew).
+        # TODO: let users pass in location of portaudio library on command line.
+        defines += [('MACOSX', '1')]
 
-setup(name='PyAudio',
-      version=__version__,
-      author="Hubert Pham",
-      url="http://people.csail.mit.edu/hubert/pyaudio/",
-      description='PortAudio Python Bindings',
-      long_description=__doc__.lstrip(),
-      scripts=scripts,
-      py_modules=['pyaudio'],
-      package_dir={'': 'src'},
-      ext_modules=[
-    Extension('_portaudio',
-              sources=pyaudio_module_sources,
-              include_dirs=include_dirs,
-              define_macros=defines,
-              libraries=external_libraries,
-              extra_compile_args=extra_compile_args,
-              extra_link_args=extra_link_args)
+        include_dirs += ['/usr/local/include', '/usr/include']
+        external_libraries_path += ['/usr/local/lib', '/usr/lib']
+
+        if MAC_SYSROOT_PATH:
+            extra_compile_args += ["-isysroot", MAC_SYSROOT_PATH]
+            extra_link_args += ["-isysroot", MAC_SYSROOT_PATH]
+    elif sys.platform == 'win32':
+        # Only supports statically linking with portaudio, since the typical
+        # way users install PyAudio on win32 is through pre-compiled wheels.
+        bits = platform.architecture()[0]
+        if '64' in bits:
+            defines.append(('MS_WIN64', '1'))
+
+        if WIN_VCPKG_PATH:
+            include_dirs += [os.path.join(WIN_VCPKG_PATH, 'include')]
+            external_libraries_path = [os.path.join(WIN_VCPKG_PATH, 'lib')]
+        else:
+            # If VCPKG_PATH is not set, it is likely a user oversight, as the
+            # extension compiler likely won't be able to find the portaudio
+            # library to link against.
+            logging.warning("Warning: VCPKG_PATH envrionment variable not set.")
+            # So if VCPKG_PATH is not set, be sure to manually add the correct
+            # path to portaudio's include and lib dirs, or use setuptools
+            # build_ext to specify them on the command line.
+            external_libraries.remove("portaudio")
+
+        # The static portaudio lib does not include user32 and advapi32, so
+        # those need to be linked manually.
+        external_libraries += ["user32", "Advapi32"]
+        # For static linking, use MT flag to match both vcpkg's portaudio and
+        # the standard portaudio cmake settings. For details, see:
+        # https://devblogs.microsoft.com/cppblog/vcpkg-updates-static-linking-is-now-available/
+        extra_compile_args += ["/MT"]
+    else:
+        # GNU/Linux and other posix-like OSes will dynamically link to
+        # portaudio, installed by the package manager.
+        include_dirs += ['/usr/local/include', '/usr/include']
+        external_libraries_path += ['/usr/local/lib', '/usr/lib']
+
+    return Extension(
+        '_portaudio',
+        sources=pyaudio_module_sources,
+        include_dirs=include_dirs,
+        define_macros=defines,
+        libraries=external_libraries,
+        extra_compile_args=extra_compile_args,
+        extra_link_args=extra_link_args,
+        library_dirs=external_libraries_path)
+
+
+with open('README.md', 'r') as fh:
+    long_description = fh.read()
+
+
+setup(
+    name='PyAudio',
+    version=__version__,
+    author="Hubert Pham",
+    url="https://people.csail.mit.edu/hubert/pyaudio/",
+    description="Cross-platform audio I/O with PortAudio",
+    long_description=long_description,
+    long_description_content_type='text/markdown',
+    license="MIT",
+    scripts=[],
+    py_modules=['pyaudio'],
+    package_dir={'': 'src'},
+    extras_require={
+        "test": ["numpy"],
+    },
+    ext_modules=[setup_extension()],
+    classifiers=[
+        "Development Status :: 4 - Beta",
+        "License :: OSI Approved :: MIT License",
+        "Programming Language :: Python :: 3",
+        "Topic :: Multimedia :: Sound/Audio"
     ])

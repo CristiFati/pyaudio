@@ -24,7 +24,9 @@
  * SOFTWARE.
  */
 
+#include <assert.h>
 #include <stdio.h>
+#define PY_SSIZE_T_CLEAN
 #include "Python.h"
 #include "portaudio.h"
 #include "_portaudiomodule.h"
@@ -33,15 +35,8 @@
 #include "pa_mac_core.h"
 #endif
 
-#define DEFAULT_FRAMES_PER_BUFFER 1024
+#define DEFAULT_FRAMES_PER_BUFFER paFramesPerBufferUnspecified
 /* #define VERBOSE */
-
-#define min(a, b)           \
-  ({                        \
-    __typeof__(a) _a = (a); \
-    __typeof__(b) _b = (b); \
-    _a < _b ? _a : _b;      \
-  })
 
 /************************************************************
  *
@@ -1291,7 +1286,7 @@ int _stream_callback_cfunction(const void *input, void *output,
   PyObject *py_status_flags = PyLong_FromUnsignedLong(statusFlags);
   PyObject *py_input_data = Py_None;
   const char *pData;
-  unsigned output_len;
+  Py_ssize_t output_len;
   PyObject *py_result;
 
   if (input) {
@@ -1364,12 +1359,20 @@ int _stream_callback_cfunction(const void *input, void *output,
   // Copy bytes for playback only if this is an output stream:
   if (output) {
     char *output_data = (char *)output;
-    memcpy(output_data, pData, min(output_len, bytes_per_frame * frameCount));
+    size_t pa_max_num_bytes = bytes_per_frame * frameCount;
+    // Though PyArg_ParseTuple returns the size of pData in output_len, a signed
+    // Py_ssize_t, that value should never be negative.
+    assert(output_len >= 0);
+    // Only copy min(output_len, pa_max_num_bytes) bytes.
+    size_t bytes_to_copy = (size_t)output_len < pa_max_num_bytes ?
+      (size_t)output_len : pa_max_num_bytes;
+    if (pData != NULL && bytes_to_copy > 0) {
+      memcpy(output_data, pData, bytes_to_copy);
+    }
     // Pad out the rest of the buffer with 0s if callback returned
     // too few frames (and assume paComplete).
-    if (output_len < (frameCount * bytes_per_frame)) {
-      memset(output_data + output_len, 0,
-             (frameCount * bytes_per_frame) - output_len);
+    if (bytes_to_copy < pa_max_num_bytes) {
+      memset(output_data + bytes_to_copy, 0, pa_max_num_bytes - bytes_to_copy);
       return_val = paComplete;
     }
   }
@@ -2039,7 +2042,7 @@ static PyObject *pa_get_stream_cpu_load(PyObject *self, PyObject *args) {
 
 static PyObject *pa_write_stream(PyObject *self, PyObject *args) {
   const char *data;
-  int total_size;
+  Py_ssize_t total_size;
   int total_frames;
   int err;
   int should_throw_exception = 0;
@@ -2275,7 +2278,10 @@ init_portaudio(void)
 {
   PyObject *m;
 
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION <= 6
+  // Deprecated since Python 3.7; now called by Py_Initialize().
   PyEval_InitThreads();
+#endif
 
   _pyAudio_StreamType.tp_new = PyType_GenericNew;
   if (PyType_Ready(&_pyAudio_StreamType) < 0) {
@@ -2394,6 +2400,10 @@ init_portaudio(void)
   PyModule_AddIntConstant(m, "paOutputUnderflow", paOutputUnderflow);
   PyModule_AddIntConstant(m, "paOutputOverflow", paOutputOverflow);
   PyModule_AddIntConstant(m, "paPrimingOutput", paPrimingOutput);
+
+  /* misc */
+  PyModule_AddIntConstant(m, "paFramesPerBufferUnspecified",
+                          paFramesPerBufferUnspecified);
 
 #ifdef MACOSX
   PyModule_AddIntConstant(m, "paMacCoreChangeDeviceParameters",
