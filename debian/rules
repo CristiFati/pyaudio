@@ -9,7 +9,11 @@ PYTHONPATH=$(subst $(SPACE),:,$(abspath $(wildcard build/lib*)))
 export DEB_BUILD_MAINT_OPTIONS=hardening=+all
 
 %:
-	dh $@ --with python2,python3,linktree --buildsystem=pybuild
+	dh $@ --with python3,linktree --buildsystem=pybuild
+
+override_dh_clean:
+	dh_clean
+	$(RM) -rf src/PyAudio.egg-info
 
 override_dh_auto_build:
 	dh_auto_build

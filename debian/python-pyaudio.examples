@@ -1,8 +1,0 @@
-examples/error.py
-examples/play_wave.py
-examples/play_wave_callback.py
-examples/record.py
-examples/system_info.py
-examples/wire_callback.py
-examples/wire_full.py
-examples/wire_half.py

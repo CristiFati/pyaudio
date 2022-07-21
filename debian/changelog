@@ -1,3 +1,51 @@
+python-pyaudio (0.2.11-1.3ubuntu1) jammy; urgency=medium
+
+  * Adjust Makefile for Python 3.10
+
+ -- Graham Inggs <ginggs@ubuntu.com>  Thu, 31 Mar 2022 13:10:38 +0000
+
+python-pyaudio (0.2.11-1.3build3) jammy; urgency=medium
+
+  * No-change rebuild with Python 3.10 only
+
+ -- Graham Inggs <ginggs@ubuntu.com>  Thu, 17 Mar 2022 20:01:32 +0000
+
+python-pyaudio (0.2.11-1.3build2) jammy; urgency=medium
+
+  * No-change rebuild to add python3.10.
+
+ -- Matthias Klose <doko@ubuntu.com>  Sat, 16 Oct 2021 06:59:04 +0000
+
+python-pyaudio (0.2.11-1.3build1) hirsute; urgency=medium
+
+  * No-change rebuild to drop python3.8 extensions.
+
+ -- Matthias Klose <doko@ubuntu.com>  Mon, 07 Dec 2020 18:43:20 +0100
+
+python-pyaudio (0.2.11-1.3) unstable; urgency=medium
+
+  * Non-maintainer upload.
+  * Fix maintainer address in previous upload.
+
+ -- Matthias Klose <doko@debian.org>  Thu, 29 Oct 2020 17:05:20 +0100
+
+python-pyaudio (0.2.11-1.2) unstable; urgency=medium
+
+  * Non-maintainer upload.
+  * Fix doc build problem. (Closes: #961798)
+  * Updated debhelper version from 9 to 12.
+  * Override dh_clean to remove generated egg-info files.
+
+ -- Petter Reinholdtsen <pere@debian.org>  Wed, 21 Oct 2020 22:01:14 +0000
+
+python-pyaudio (0.2.11-1.1) unstable; urgency=medium
+
+  * Non-maintainer upload.
+  * Use Python 3 for building docs.
+  * Drop Python 2 support (Closes: #938056).
+
+ -- Ondřej Nový <onovy@debian.org>  Fri, 20 Dec 2019 12:28:15 +0100
+
 python-pyaudio (0.2.11-1) unstable; urgency=low
 
   * New upstream release

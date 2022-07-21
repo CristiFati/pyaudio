@@ -1,0 +1,17 @@
+Description: Adjust Makefile for Python 3.10
+ import get_platform() from sysconfig instead of distutils
+ support Python with 2-digit minor version
+Author: Graham Inggs <ginggs@debian.org>
+Last-Update: 2022-03-31
+
+--- a/Makefile
++++ b/Makefile
+@@ -7,7 +7,7 @@
+ BUILD_ARGS ?=
+ SPHINX ?= sphinx-build
+ DOCS_OUTPUT=docs/
+-PYTHON_BUILD_DIR:=$(shell $(PYTHON) -c "import distutils.util; import sys; print(distutils.util.get_platform() + '-' + sys.version[0:3])")
++PYTHON_BUILD_DIR:=$(shell $(PYTHON) -c "import sysconfig; import sys; print(sysconfig.get_platform() + '-' + ('%d.%d' % sys.version_info[:2]))")
+ BUILD_DIR:=lib.$(PYTHON_BUILD_DIR)
+ BUILD_STAMP:=$(BUILD_DIR)/build
+ SRCFILES := src/*.c src/*.h src/*.py

@@ -2,23 +2,13 @@ Source: python-pyaudio
 Section: python
 Priority: optional
 Standards-Version: 3.9.8
-Build-Depends: python-all-dev, python3-all-dev, debhelper(>= 9), portaudio19-dev, python-sphinx, python-docutils, dh-linktree, dh-python, libjs-jquery, libjs-underscore
-Maintainer: Hubert Pham <hubert@mit.edu>
+Build-Depends: python3-all-dev, debhelper(>= 12), portaudio19-dev, python3-sphinx, dh-linktree, dh-python, node-jquery, libjs-underscore
+Maintainer: Ubuntu Developers <ubuntu-devel-discuss@lists.ubuntu.com>
+XSBC-Original-Maintainer: Hubert Pham <hubert@mit.edu>
 Uploaders: Felipe Sateler <fsateler@debian.org>, Justin Mazzola Paluska <jmp@mit.edu>
 Homepage: https://people.csail.mit.edu/hubert/pyaudio/
 Vcs-Git: https://people.csail.mit.edu/hubert/git/pyaudio.git -b debian
 Vcs-Browser: https://people.csail.mit.edu/hubert/git/pyaudio.git
-
-Package: python-pyaudio
-Depends: ${python:Depends}, ${shlibs:Depends}, ${misc:Depends}
-Provides: ${python:Provides}
-Suggests: python-pyaudio-doc (>= ${source:Upstream-Version})
-Architecture: any
-Description: Python bindings for PortAudio v19
- PyAudio provides Python bindings for PortAudio v19, the
- cross-platform audio I/O library. PyAudio makes it easy to use Python
- to play and record audio via pythonic wrappers around the PortAudio
- API.  This package is for Python2.
 
 Package: python3-pyaudio
 Depends: ${python3:Depends}, ${shlibs:Depends}, ${misc:Depends}
