@@ -3,7 +3,7 @@
 @@ -3,7 +3,7 @@
  .PHONY: docs clean build
  
- VERSION := 0.2.11
+ VERSION := 0.2.12
 -PYTHON ?= python
 +PYTHON ?= python3
  BUILD_ARGS ?=

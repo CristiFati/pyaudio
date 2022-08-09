@@ -1,3 +1,15 @@
+python-pyaudio (0.2.12-1) unstable; urgency=medium
+
+  * New upstream release
+    - Refactor setup.py to simplify build logic.
+    - Use paFramesPerBufferUnspecified as the default frames per buffer.
+    - Use system's preferred encoding to decode device names.
+    - Unit tests now skippable by environment variable.
+    - Documentation fixes.
+  * Link sphinx to the libjs-sphinxdoc package
+
+ -- Hubert Pham <hubert@mit.edu>  Thu, 21 Jul 2022 00:54:00 -0500
+
 python-pyaudio (0.2.11-1.3ubuntu1) jammy; urgency=medium
 
   * Adjust Makefile for Python 3.10

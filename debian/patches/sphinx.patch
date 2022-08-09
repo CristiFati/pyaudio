@@ -1,0 +1,11 @@
+--- a/Makefile
++++ b/Makefile
+@@ -39,7 +39,7 @@ build/$(BUILD_STAMP): $(SRCFILES)
+ 	touch $@
+ 
+ docs: build
+-	PYTHONPATH=build/$(BUILD_DIR) $(SPHINX) -b html sphinx/ $(DOCS_OUTPUT)
++	PYTHONPATH=build/$(BUILD_DIR) $(SPHINX) -b html sphinx/ $(DOCS_OUTPUT) -d debian/doctrees
+ 
+ ######################################################################
+ # Source Tarball

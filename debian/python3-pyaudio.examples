@@ -1,4 +1,3 @@
-examples/error.py
 examples/play_wave.py
 examples/play_wave_callback.py
 examples/record.py
