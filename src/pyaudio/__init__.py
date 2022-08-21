@@ -113,9 +113,9 @@ import locale
 
 # attempt to import PortAudio
 try:
-    import _portaudio as pa
+    import pyaudio._portaudio as pa
 except ImportError:
-    print("Could not import the PyAudio C module '_portaudio'.")
+    print("Could not import the PyAudio C module 'pyaudio._portaudio'.")
     raise
 
 ############################################################

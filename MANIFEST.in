@@ -1,4 +1,4 @@
-include src/*.c src/*.h src/*.py
+include src/pyaudio/*.c src/pyaudio/*.h src/pyaudio/*.py
 include Makefile CHANGELOG INSTALL MANIFEST.in
 recursive-include examples *.py
 recursive-include tests *.py

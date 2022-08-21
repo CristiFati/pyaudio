@@ -48,7 +48,7 @@ MAC_SYSROOT_PATH = os.environ.get("SYSROOT_PATH", None)
 WIN_VCPKG_PATH = os.environ.get("VCPKG_PATH", None)
 
 def setup_extension():
-    pyaudio_module_sources = ['src/_portaudiomodule.c']
+    pyaudio_module_sources = ['src/pyaudio/_portaudiomodule.c']
     include_dirs = []
     external_libraries = ["portaudio"]
     external_libraries_path = []
@@ -102,7 +102,7 @@ def setup_extension():
         external_libraries_path += ['/usr/local/lib', '/usr/lib']
 
     return Extension(
-        '_portaudio',
+        'pyaudio._portaudio',
         sources=pyaudio_module_sources,
         include_dirs=include_dirs,
         define_macros=defines,
@@ -126,7 +126,7 @@ setup(
     long_description_content_type='text/markdown',
     license="MIT",
     scripts=[],
-    py_modules=['pyaudio'],
+    packages=['pyaudio'],
     package_dir={'': 'src'},
     extras_require={
         "test": ["numpy"],

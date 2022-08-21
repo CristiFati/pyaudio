@@ -26,7 +26,8 @@ what:
 	@echo "   python setup.py install"
 
 clean:
-	@rm -rf build dist MANIFEST $(DOCS_OUTPUT) src/*.pyc
+	@rm -rf build dist MANIFEST $(DOCS_OUTPUT) src/pyaudio/*.pyc \
+	src/pyaudio/*.so src/pyaudio/__pycache__
 
 ######################################################################
 # Documentation
