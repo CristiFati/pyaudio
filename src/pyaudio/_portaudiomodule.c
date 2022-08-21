@@ -33,6 +33,7 @@
 #include "Python.h"
 
 #include "device_info.h"
+#include "host_api.h"
 #include "_portaudiomodule.h"
 
 #include "portaudio.h"
@@ -150,172 +151,6 @@ static PyMethodDef paMethods[] = {
  * II. Python Object Wrappers
  *
  ************************************************************/
-
-
-/*************************************************************
- * PaHostApi Info Python Object
- *************************************************************/
-
-typedef struct {
-  // clang-format off
-  PyObject_HEAD
-      // clang-format on
-      PaHostApiInfo *apiInfo;
-} _pyAudio_paHostApiInfo;
-
-static PyObject *_pyAudio_paHostApiInfo_get_structVersion(
-    _pyAudio_paHostApiInfo *self, void *closure) {
-  if ((!self->apiInfo)) {
-    PyErr_SetString(PyExc_AttributeError, "No HostApi Info available");
-    return NULL;
-  }
-
-  return PyLong_FromLong(self->apiInfo->structVersion);
-}
-
-static PyObject *_pyAudio_paHostApiInfo_get_type(_pyAudio_paHostApiInfo *self,
-                                                 void *closure) {
-  if ((!self->apiInfo)) {
-    PyErr_SetString(PyExc_AttributeError, "No HostApi Info available");
-    return NULL;
-  }
-
-  return PyLong_FromLong((long)self->apiInfo->type);
-}
-
-static PyObject *_pyAudio_paHostApiInfo_get_name(_pyAudio_paHostApiInfo *self,
-                                                 void *closure) {
-  if ((!self->apiInfo) || (self->apiInfo->name == NULL)) {
-    PyErr_SetString(PyExc_AttributeError, "No HostApi Info available");
-    return NULL;
-  }
-
-  return PyUnicode_FromString(self->apiInfo->name);
-}
-
-static PyObject *_pyAudio_paHostApiInfo_get_deviceCount(
-    _pyAudio_paHostApiInfo *self, void *closure) {
-  if ((!self->apiInfo)) {
-    PyErr_SetString(PyExc_AttributeError, "No HostApi Info available");
-    return NULL;
-  }
-
-  return PyLong_FromLong(self->apiInfo->deviceCount);
-}
-
-static PyObject *_pyAudio_paHostApiInfo_get_defaultInputDevice(
-    _pyAudio_paHostApiInfo *self, void *closure) {
-  if ((!self->apiInfo)) {
-    PyErr_SetString(PyExc_AttributeError, "No HostApi Info available");
-    return NULL;
-  }
-
-  return PyLong_FromLong(self->apiInfo->defaultInputDevice);
-}
-
-static PyObject *_pyAudio_paHostApiInfo_get_defaultOutputDevice(
-    _pyAudio_paHostApiInfo *self, void *closure) {
-  if ((!self->apiInfo)) {
-    PyErr_SetString(PyExc_AttributeError, "No HostApi Info available");
-    return NULL;
-  }
-
-  return PyLong_FromLong(self->apiInfo->defaultOutputDevice);
-}
-
-static int _pyAudio_paHostApiInfo_antiset(_pyAudio_paHostApiInfo *self,
-                                          PyObject *value, void *closure) {
-  /* read-only: do not allow users to change values */
-  PyErr_SetString(PyExc_AttributeError,
-                  "Fields read-only: cannot modify values");
-  return -1;
-}
-
-static void _pyAudio_paHostApiInfo_dealloc(_pyAudio_paHostApiInfo *self) {
-  self->apiInfo = NULL;
-  Py_TYPE(self)->tp_free((PyObject *)self);
-}
-
-static PyGetSetDef _pyAudio_paHostApiInfo_getseters[] = {
-    {"name", (getter)_pyAudio_paHostApiInfo_get_name,
-     (setter)_pyAudio_paHostApiInfo_antiset, "host api name", NULL},
-
-    {"structVersion", (getter)_pyAudio_paHostApiInfo_get_structVersion,
-     (setter)_pyAudio_paHostApiInfo_antiset, "struct version", NULL},
-
-    {"type", (getter)_pyAudio_paHostApiInfo_get_type,
-     (setter)_pyAudio_paHostApiInfo_antiset, "host api type", NULL},
-
-    {"deviceCount", (getter)_pyAudio_paHostApiInfo_get_deviceCount,
-     (setter)_pyAudio_paHostApiInfo_antiset, "number of devices", NULL},
-
-    {"defaultInputDevice",
-     (getter)_pyAudio_paHostApiInfo_get_defaultInputDevice,
-     (setter)_pyAudio_paHostApiInfo_antiset, "default input device index",
-     NULL},
-
-    {"defaultOutputDevice",
-     (getter)_pyAudio_paHostApiInfo_get_defaultOutputDevice,
-     (setter)_pyAudio_paHostApiInfo_antiset, "default output device index",
-     NULL},
-
-    {NULL}};
-
-static PyTypeObject _pyAudio_paHostApiInfoType = {
-    // clang-format off
-  PyVarObject_HEAD_INIT(NULL, 0)
-    // clang-format on
-    "_portaudio.paHostApiInfo",                 /*tp_name*/
-    sizeof(_pyAudio_paHostApiInfo),             /*tp_basicsize*/
-    0,                                          /*tp_itemsize*/
-    (destructor)_pyAudio_paHostApiInfo_dealloc, /*tp_dealloc*/
-    0,                                          /*tp_print*/
-    0,                                          /*tp_getattr*/
-    0,                                          /*tp_setattr*/
-    0,                                          /*tp_compare*/
-    0,                                          /*tp_repr*/
-    0,                                          /*tp_as_number*/
-    0,                                          /*tp_as_sequence*/
-    0,                                          /*tp_as_mapping*/
-    0,                                          /*tp_hash */
-    0,                                          /*tp_call*/
-    0,                                          /*tp_str*/
-    0,                                          /*tp_getattro*/
-    0,                                          /*tp_setattro*/
-    0,                                          /*tp_as_buffer*/
-    Py_TPFLAGS_DEFAULT,                         /*tp_flags*/
-    "Port Audio HostApi Info",                  /* tp_doc */
-    0,                                          /* tp_traverse */
-    0,                                          /* tp_clear */
-    0,                                          /* tp_richcompare */
-    0,                                          /* tp_weaklistoffset */
-    0,                                          /* tp_iter */
-    0,                                          /* tp_iternext */
-    0,                                          /* tp_methods */
-    0,                                          /* tp_members */
-    _pyAudio_paHostApiInfo_getseters,           /* tp_getset */
-    0,                                          /* tp_base */
-    0,                                          /* tp_dict */
-    0,                                          /* tp_descr_get */
-    0,                                          /* tp_descr_set */
-    0,                                          /* tp_dictoffset */
-    0,                                          /* tp_init */
-    0,                                          /* tp_alloc */
-    0,                                          /* tp_new */
-};
-
-static _pyAudio_paHostApiInfo *_create_paHostApiInfo_object(void) {
-  _pyAudio_paHostApiInfo *obj;
-
-  /* don't allow subclassing */
-  obj = (_pyAudio_paHostApiInfo *)PyObject_New(_pyAudio_paHostApiInfo,
-                                               &_pyAudio_paHostApiInfoType);
-  return obj;
-}
-
-/*************************************************************
- * Host-Specific Objects
- *************************************************************/
 
 /*************************************************************
  * --> Mac OS X
@@ -800,131 +635,6 @@ static PyObject *pa_terminate(PyObject *self, PyObject *args) {
 
   Py_INCREF(Py_None);
   return Py_None;
-}
-
-/*************************************************************
- * HostAPI
- *************************************************************/
-
-static PyObject *pa_get_host_api_count(PyObject *self, PyObject *args) {
-  PaHostApiIndex count;
-
-  if (!PyArg_ParseTuple(args, "")) {
-    return NULL;
-  }
-
-  count = Pa_GetHostApiCount();
-
-  if (count < 0) {
-#ifdef VERBOSE
-    fprintf(stderr, "An error occured while using the portaudio stream\n");
-    fprintf(stderr, "Error number: %d\n", count);
-    fprintf(stderr, "Error message: %s\n", Pa_GetErrorText(count));
-#endif
-
-    PyErr_SetObject(PyExc_IOError,
-                    Py_BuildValue("(i,s)", count, Pa_GetErrorText(count)));
-    return NULL;
-  }
-
-  return PyLong_FromLong(count);
-}
-
-static PyObject *pa_get_default_host_api(PyObject *self, PyObject *args) {
-  PaHostApiIndex index;
-
-  if (!PyArg_ParseTuple(args, "")) {
-    return NULL;
-  }
-
-  index = Pa_GetDefaultHostApi();
-
-  if (index < 0) {
-#ifdef VERBOSE
-    fprintf(stderr, "An error occured while using the portaudio stream\n");
-    fprintf(stderr, "Error number: %d\n", index);
-    fprintf(stderr, "Error message: %s\n", Pa_GetErrorText(index));
-#endif
-
-    PyErr_SetObject(PyExc_IOError,
-                    Py_BuildValue("(i,s)", index, Pa_GetErrorText(index)));
-    return NULL;
-  }
-
-  return PyLong_FromLong(index);
-}
-
-static PyObject *pa_host_api_type_id_to_host_api_index(PyObject *self,
-                                                       PyObject *args) {
-  PaHostApiTypeId typeid;
-  PaHostApiIndex index;
-
-  if (!PyArg_ParseTuple(args, "i", &typeid)) {
-    return NULL;
-  }
-
-  index = Pa_HostApiTypeIdToHostApiIndex(typeid);
-
-  if (index < 0) {
-#ifdef VERBOSE
-    fprintf(stderr, "An error occured while using the portaudio stream\n");
-    fprintf(stderr, "Error number: %d\n", index);
-    fprintf(stderr, "Error message: %s\n", Pa_GetErrorText(index));
-#endif
-
-    PyErr_SetObject(PyExc_IOError,
-                    Py_BuildValue("(i,s)", index, Pa_GetErrorText(index)));
-    return NULL;
-  }
-
-  return PyLong_FromLong(index);
-}
-
-static PyObject *pa_host_api_device_index_to_device_index(PyObject *self,
-                                                          PyObject *args) {
-  PaHostApiIndex apiIndex;
-  int hostApiDeviceindex;
-  PaDeviceIndex devIndex;
-
-  if (!PyArg_ParseTuple(args, "ii", &apiIndex, &hostApiDeviceindex)) {
-    return NULL;
-  }
-
-  devIndex = Pa_HostApiDeviceIndexToDeviceIndex(apiIndex, hostApiDeviceindex);
-  if (devIndex < 0) {
-#ifdef VERBOSE
-    fprintf(stderr, "An error occured while using the portaudio stream\n");
-    fprintf(stderr, "Error number: %d\n", devIndex);
-    fprintf(stderr, "Error message: %s\n", Pa_GetErrorText(devIndex));
-#endif
-
-    PyErr_SetObject(PyExc_IOError, Py_BuildValue("(i,s)", devIndex,
-                                                 Pa_GetErrorText(devIndex)));
-    return NULL;
-  }
-
-  return PyLong_FromLong(devIndex);
-}
-
-static PyObject *pa_get_host_api_info(PyObject *self, PyObject *args) {
-  PaHostApiIndex index;
-  PaHostApiInfo *_info;
-  _pyAudio_paHostApiInfo *py_info;
-
-  if (!PyArg_ParseTuple(args, "i", &index)) {
-    return NULL;
-  }
-
-  _info = (PaHostApiInfo *)Pa_GetHostApiInfo(index);
-  if (!_info) {
-    PyErr_SetObject(PyExc_IOError, Py_BuildValue("(i,s)", paInvalidHostApi,
-                                                 "Invalid host api info"));
-    return NULL;
-  }
-
-  py_info = _create_paHostApiInfo_object();
-  py_info->apiInfo = _info;
-  return (PyObject *)py_info;
 }
 
 /*************************************************************
@@ -2084,8 +1794,7 @@ init_portaudio(void)
     return ERROR_INIT;
   }
 
-  _pyAudio_paHostApiInfoType.tp_new = PyType_GenericNew;
-  if (PyType_Ready(&_pyAudio_paHostApiInfoType) < 0) {
+  if (PyType_Ready(&PyAudioHostApiInfoType) < 0) {
     return ERROR_INIT;
   }
 
@@ -2104,7 +1813,7 @@ init_portaudio(void)
 
   Py_INCREF(&_pyAudio_StreamType);
   Py_INCREF(&PyAudioDeviceInfoType);
-  Py_INCREF(&_pyAudio_paHostApiInfoType);
+  Py_INCREF(&PyAudioHostApiInfoType);
 
 #ifdef MACOSX
   Py_INCREF(&_pyAudio_MacOSX_hostApiSpecificStreamInfoType);

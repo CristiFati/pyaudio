@@ -43,22 +43,6 @@ pa_initialize(PyObject *self, PyObject *args);
 static PyObject *
 pa_terminate(PyObject *self, PyObject *args);
 
-/* host api */
-static PyObject *
-pa_get_host_api_count(PyObject *self, PyObject *args);
-
-static PyObject *
-pa_get_default_host_api(PyObject *self, PyObject *args);
-
-static PyObject *
-pa_host_api_type_id_to_host_api_index(PyObject *self, PyObject *args);
-
-static PyObject *
-pa_host_api_device_index_to_device_index(PyObject *self, PyObject *args);
-
-static PyObject *
-pa_get_host_api_info(PyObject *self, PyObject *args);
-
 /* device api */
 static PyObject *
 pa_get_device_count(PyObject *self, PyObject *args);
