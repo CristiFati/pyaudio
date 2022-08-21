@@ -29,20 +29,6 @@
 #ifndef __PAMODULE_H__
 #define __PAMODULE_H__
 
-/* version */
-static PyObject *
-pa_get_version(PyObject *self, PyObject *args);
-
-static PyObject *
-pa_get_version_text(PyObject *self, PyObject *args);
-
-/* framework init */
-static PyObject *
-pa_initialize(PyObject *self, PyObject *args);
-
-static PyObject *
-pa_terminate(PyObject *self, PyObject *args);
-
 /* stream open/close */
 
 static PyObject *
@@ -50,13 +36,6 @@ pa_open(PyObject *self, PyObject *args, PyObject *kwargs);
 
 static PyObject *
 pa_close(PyObject *self, PyObject *args);
-
-static PyObject *
-pa_get_sample_size(PyObject *self, PyObject *args);
-
-static PyObject *
-pa_is_format_supported(PyObject *self, PyObject *args,
-		       PyObject *kwargs);
 
 /* stream start/stop/info */
 
