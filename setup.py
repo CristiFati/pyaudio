@@ -62,8 +62,14 @@ def setup_extension():
         # TODO: let users pass in location of portaudio library on command line.
         defines += [('MACOSX', '1')]
 
-        include_dirs += ['/usr/local/include', '/usr/include']
-        external_libraries_path += ['/usr/local/lib', '/usr/lib']
+        include_dirs += [
+            '/usr/local/include', '/usr/include', '/opt/homebrew/include'
+        ]
+        external_libraries_path += [
+            path
+            for path in ('/usr/local/lib', '/usr/lib', '/opt/homebrew/lib')
+            if os.path.exists(path)
+        ]
 
         if MAC_SYSROOT_PATH:
             extra_compile_args += ["-isysroot", MAC_SYSROOT_PATH]
