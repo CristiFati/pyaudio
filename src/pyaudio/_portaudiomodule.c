@@ -746,7 +746,7 @@ static PyObject *pa_open(PyObject *self, PyObject *args, PyObject *kwargs) {
 #ifdef MACOSX
     if (outputHostSpecificStreamInfo) {
       outputParameters->hostApiSpecificStreamInfo =
-          outputHostSpecificStreamInfo->paMacCoreStreamInfo;
+          &outputHostSpecificStreamInfo->paMacCoreStreamInfo;
     }
 #endif
   }
@@ -779,7 +779,7 @@ static PyObject *pa_open(PyObject *self, PyObject *args, PyObject *kwargs) {
 #ifdef MACOSX
     if (inputHostSpecificStreamInfo) {
       inputParameters->hostApiSpecificStreamInfo =
-          inputHostSpecificStreamInfo->paMacCoreStreamInfo;
+          &inputHostSpecificStreamInfo->paMacCoreStreamInfo;
     }
 #endif
   }

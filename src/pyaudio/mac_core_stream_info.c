@@ -10,16 +10,10 @@
 #include "portaudio.h"
 
 static void cleanup(PyAudioMacCoreStreamInfo *self) {
-  if (self->paMacCoreStreamInfo != NULL) {
-    free(self->paMacCoreStreamInfo);
-    self->paMacCoreStreamInfo = NULL;
-  }
-
   if (self->channelMap != NULL) {
     free(self->channelMap);
     self->channelMap = NULL;
   }
-
   self->flags = paMacCorePlayNice;
   self->channelMapSize = 0;
 }
@@ -83,19 +77,9 @@ static int init(PyObject *_self, PyObject *args, PyObject *kwargs) {
     }
   }
 
-  self->paMacCoreStreamInfo =
-      (PaMacCoreStreamInfo *)malloc(sizeof(PaMacCoreStreamInfo));
-
-  if (self->paMacCoreStreamInfo == NULL) {
-    PyErr_SetString(PyExc_SystemError, "Out of memeory");
-    cleanup(self);
-    return -1;
-  }
-
-  PaMacCore_SetupStreamInfo(self->paMacCoreStreamInfo, flags);
-
+  PaMacCore_SetupStreamInfo(&self->paMacCoreStreamInfo, flags);
   if (self->channelMap) {
-    PaMacCore_SetupChannelMap(self->paMacCoreStreamInfo, self->channelMap,
+    PaMacCore_SetupChannelMap(&self->paMacCoreStreamInfo, self->channelMap,
                               self->channelMapSize);
   }
 

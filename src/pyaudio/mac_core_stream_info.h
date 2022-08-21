@@ -16,7 +16,7 @@ typedef struct {
   // clang-format off
   PyObject_HEAD
   // clang-format on
-  PaMacCoreStreamInfo *paMacCoreStreamInfo;
+  PaMacCoreStreamInfo paMacCoreStreamInfo;
   int flags;
   SInt32 *channelMap;
   int channelMapSize;
