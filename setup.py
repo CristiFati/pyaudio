@@ -48,7 +48,8 @@ MAC_SYSROOT_PATH = os.environ.get("SYSROOT_PATH", None)
 WIN_VCPKG_PATH = os.environ.get("VCPKG_PATH", None)
 
 def setup_extension():
-    pyaudio_module_sources = ['src/pyaudio/_portaudiomodule.c']
+    pyaudio_module_sources = ['src/pyaudio/_portaudiomodule.c',
+                              'src/pyaudio/device_info.c']
     include_dirs = []
     external_libraries = ["portaudio"]
     external_libraries_path = []

@@ -26,11 +26,16 @@
 
 #include <assert.h>
 #include <stdio.h>
+
+#ifndef PY_SSIZE_T_CLEAN
 #define PY_SSIZE_T_CLEAN
+#endif
 #include "Python.h"
-#include "portaudio.h"
+
+#include "device_info.h"
 #include "_portaudiomodule.h"
 
+#include "portaudio.h"
 #ifdef MACOSX
 #include "pa_mac_core.h"
 #endif
@@ -146,219 +151,6 @@ static PyMethodDef paMethods[] = {
  *
  ************************************************************/
 
-/*************************************************************
- * PaDeviceInfo Type : Python object wrapper for PaDeviceInfo
- *************************************************************/
-
-typedef struct {
-  // clang-format off
-  PyObject_HEAD
-  PaDeviceInfo *devInfo;
-  // clang-format on
-} _pyAudio_paDeviceInfo;
-
-static PyObject *_pyAudio_paDeviceInfo_get_structVersion(
-    _pyAudio_paDeviceInfo *self, void *closure) {
-  if (!self->devInfo) {
-    PyErr_SetString(PyExc_AttributeError, "No Device Info available");
-    return NULL;
-  }
-
-  return PyLong_FromLong(self->devInfo->structVersion);
-}
-
-static PyObject *_pyAudio_paDeviceInfo_get_name(_pyAudio_paDeviceInfo *self,
-                                                void *closure) {
-  if ((!self->devInfo) || (self->devInfo->name == NULL)) {
-    PyErr_SetString(PyExc_AttributeError, "No Device Info available");
-    return NULL;
-  }
-
-  return PyBytes_FromString(self->devInfo->name);
-}
-
-static PyObject *_pyAudio_paDeviceInfo_get_hostApi(_pyAudio_paDeviceInfo *self,
-                                                   void *closure) {
-  if (!self->devInfo) {
-    PyErr_SetString(PyExc_AttributeError, "No Device Info available");
-    return NULL;
-  }
-
-  return PyLong_FromLong(self->devInfo->hostApi);
-}
-
-static PyObject *_pyAudio_paDeviceInfo_get_maxInputChannels(
-    _pyAudio_paDeviceInfo *self, void *closure) {
-  if (!self->devInfo) {
-    PyErr_SetString(PyExc_AttributeError, "No Device Info available");
-    return NULL;
-  }
-
-  return PyLong_FromLong(self->devInfo->maxInputChannels);
-}
-
-static PyObject *_pyAudio_paDeviceInfo_get_maxOutputChannels(
-    _pyAudio_paDeviceInfo *self, void *closure) {
-  if (!self->devInfo) {
-    PyErr_SetString(PyExc_AttributeError, "No Device Info available");
-    return NULL;
-  }
-
-  return PyLong_FromLong(self->devInfo->maxOutputChannels);
-}
-
-static PyObject *_pyAudio_paDeviceInfo_get_defaultLowInputLatency(
-    _pyAudio_paDeviceInfo *self, void *closure) {
-  if (!self->devInfo) {
-    PyErr_SetString(PyExc_AttributeError, "No Device Info available");
-    return NULL;
-  }
-
-  return PyFloat_FromDouble(self->devInfo->defaultLowInputLatency);
-}
-
-static PyObject *_pyAudio_paDeviceInfo_get_defaultLowOutputLatency(
-    _pyAudio_paDeviceInfo *self, void *closure) {
-  if (!self->devInfo) {
-    PyErr_SetString(PyExc_AttributeError, "No Device Info available");
-    return NULL;
-  }
-
-  return PyFloat_FromDouble(self->devInfo->defaultLowOutputLatency);
-}
-
-static PyObject *_pyAudio_paDeviceInfo_get_defaultHighInputLatency(
-    _pyAudio_paDeviceInfo *self, void *closure) {
-  if (!self->devInfo) {
-    PyErr_SetString(PyExc_AttributeError, "No Device Info available");
-    return NULL;
-  }
-
-  return PyFloat_FromDouble(self->devInfo->defaultHighInputLatency);
-}
-
-static PyObject *_pyAudio_paDeviceInfo_get_defaultHighOutputLatency(
-    _pyAudio_paDeviceInfo *self, void *closure) {
-  if (!self->devInfo) {
-    PyErr_SetString(PyExc_AttributeError, "No Device Info available");
-    return NULL;
-  }
-
-  return PyFloat_FromDouble(self->devInfo->defaultHighOutputLatency);
-}
-
-static PyObject *_pyAudio_paDeviceInfo_get_defaultSampleRate(
-    _pyAudio_paDeviceInfo *self, void *closure) {
-  if (!self->devInfo) {
-    PyErr_SetString(PyExc_AttributeError, "No Device Info available");
-    return NULL;
-  }
-
-  return PyFloat_FromDouble(self->devInfo->defaultSampleRate);
-}
-
-static int _pyAudio_paDeviceInfo_antiset(_pyAudio_paDeviceInfo *self,
-                                         PyObject *value, void *closure) {
-  /* read-only: do not allow users to change values */
-  PyErr_SetString(PyExc_AttributeError,
-                  "Fields read-only: cannot modify values");
-  return -1;
-}
-
-static PyGetSetDef _pyAudio_paDeviceInfo_getseters[] = {
-    {"name", (getter)_pyAudio_paDeviceInfo_get_name,
-     (setter)_pyAudio_paDeviceInfo_antiset, "device name", NULL},
-
-    {"structVersion", (getter)_pyAudio_paDeviceInfo_get_structVersion,
-     (setter)_pyAudio_paDeviceInfo_antiset, "struct version", NULL},
-
-    {"hostApi", (getter)_pyAudio_paDeviceInfo_get_hostApi,
-     (setter)_pyAudio_paDeviceInfo_antiset, "host api index", NULL},
-
-    {"maxInputChannels", (getter)_pyAudio_paDeviceInfo_get_maxInputChannels,
-     (setter)_pyAudio_paDeviceInfo_antiset, "max input channels", NULL},
-
-    {"maxOutputChannels", (getter)_pyAudio_paDeviceInfo_get_maxOutputChannels,
-     (setter)_pyAudio_paDeviceInfo_antiset, "max output channels", NULL},
-
-    {"defaultLowInputLatency",
-     (getter)_pyAudio_paDeviceInfo_get_defaultLowInputLatency,
-     (setter)_pyAudio_paDeviceInfo_antiset, "default low input latency", NULL},
-
-    {"defaultLowOutputLatency",
-     (getter)_pyAudio_paDeviceInfo_get_defaultLowOutputLatency,
-     (setter)_pyAudio_paDeviceInfo_antiset, "default low output latency", NULL},
-
-    {"defaultHighInputLatency",
-     (getter)_pyAudio_paDeviceInfo_get_defaultHighInputLatency,
-     (setter)_pyAudio_paDeviceInfo_antiset, "default high input latency", NULL},
-
-    {"defaultHighOutputLatency",
-     (getter)_pyAudio_paDeviceInfo_get_defaultHighOutputLatency,
-     (setter)_pyAudio_paDeviceInfo_antiset, "default high output latency",
-     NULL},
-
-    {"defaultSampleRate", (getter)_pyAudio_paDeviceInfo_get_defaultSampleRate,
-     (setter)_pyAudio_paDeviceInfo_antiset, "default sample rate", NULL},
-
-    {NULL}};
-
-static void _pyAudio_paDeviceInfo_dealloc(_pyAudio_paDeviceInfo *self) {
-  self->devInfo = NULL;
-  Py_TYPE(self)->tp_free((PyObject *)self);
-}
-
-static PyTypeObject _pyAudio_paDeviceInfoType = {
-    // clang-format off
-  PyVarObject_HEAD_INIT(NULL, 0)
-    // clang-format on
-    "_portaudio.paDeviceInfo",                 /*tp_name*/
-    sizeof(_pyAudio_paDeviceInfo),             /*tp_basicsize*/
-    0,                                         /*tp_itemsize*/
-    (destructor)_pyAudio_paDeviceInfo_dealloc, /*tp_dealloc*/
-    0,                                         /*tp_print*/
-    0,                                         /*tp_getattr*/
-    0,                                         /*tp_setattr*/
-    0,                                         /*tp_compare*/
-    0,                                         /*tp_repr*/
-    0,                                         /*tp_as_number*/
-    0,                                         /*tp_as_sequence*/
-    0,                                         /*tp_as_mapping*/
-    0,                                         /*tp_hash */
-    0,                                         /*tp_call*/
-    0,                                         /*tp_str*/
-    0,                                         /*tp_getattro*/
-    0,                                         /*tp_setattro*/
-    0,                                         /*tp_as_buffer*/
-    Py_TPFLAGS_DEFAULT,                        /*tp_flags*/
-    "Port Audio Device Info",                  /* tp_doc */
-    0,                                         /* tp_traverse */
-    0,                                         /* tp_clear */
-    0,                                         /* tp_richcompare */
-    0,                                         /* tp_weaklistoffset */
-    0,                                         /* tp_iter */
-    0,                                         /* tp_iternext */
-    0,                                         /* tp_methods */
-    0,                                         /* tp_members */
-    _pyAudio_paDeviceInfo_getseters,           /* tp_getset */
-    0,                                         /* tp_base */
-    0,                                         /* tp_dict */
-    0,                                         /* tp_descr_get */
-    0,                                         /* tp_descr_set */
-    0,                                         /* tp_dictoffset */
-    0,                                         /* tp_init */
-    0,                                         /* tp_alloc */
-    0,                                         /* tp_new */
-};
-
-static _pyAudio_paDeviceInfo *_create_paDeviceInfo_object(void) {
-  _pyAudio_paDeviceInfo *obj;
-
-  /* don't allow subclassing */
-  obj = (_pyAudio_paDeviceInfo *)PyObject_New(_pyAudio_paDeviceInfo,
-                                              &_pyAudio_paDeviceInfoType);
-  return obj;
-}
 
 /*************************************************************
  * PaHostApi Info Python Object
@@ -1217,7 +1009,7 @@ static PyObject *pa_get_default_output_device(PyObject *self, PyObject *args) {
 static PyObject *pa_get_device_info(PyObject *self, PyObject *args) {
   PaDeviceIndex index;
   PaDeviceInfo *_info;
-  _pyAudio_paDeviceInfo *py_info;
+  PyAudioDeviceInfo *py_info;
 
   if (!PyArg_ParseTuple(args, "i", &index)) {
     return NULL;
@@ -1230,7 +1022,7 @@ static PyObject *pa_get_device_info(PyObject *self, PyObject *args) {
     return NULL;
   }
 
-  py_info = _create_paDeviceInfo_object();
+  py_info = CreatePyAudioDeviceInfo();
   py_info->devInfo = _info;
   return (PyObject *)py_info;
 }
@@ -2288,8 +2080,7 @@ init_portaudio(void)
     return ERROR_INIT;
   }
 
-  _pyAudio_paDeviceInfoType.tp_new = PyType_GenericNew;
-  if (PyType_Ready(&_pyAudio_paDeviceInfoType) < 0) {
+  if (PyType_Ready(&PyAudioDeviceInfoType) < 0) {
     return ERROR_INIT;
   }
 
@@ -2312,7 +2103,7 @@ init_portaudio(void)
 #endif
 
   Py_INCREF(&_pyAudio_StreamType);
-  Py_INCREF(&_pyAudio_paDeviceInfoType);
+  Py_INCREF(&PyAudioDeviceInfoType);
   Py_INCREF(&_pyAudio_paHostApiInfoType);
 
 #ifdef MACOSX
