@@ -15,16 +15,14 @@
 typedef struct {
   // clang-format off
   PyObject_HEAD
-      // clang-format on
-      PaMacCoreStreamInfo *paMacCoreStreamInfo;
+  // clang-format on
+  PaMacCoreStreamInfo *paMacCoreStreamInfo;
   int flags;
   SInt32 *channelMap;
   int channelMapSize;
-} _pyAudio_MacOSX_hostApiSpecificStreamInfo;
+} PyAudioMacCoreStreamInfo;
 
-// typedef _pyAudio_MacOSX_hostApiSpecificStreamInfo _pyAudio_Mac_HASSI;
-
-extern PyTypeObject _pyAudio_MacOSX_hostApiSpecificStreamInfoType;
+extern PyTypeObject PyAudioMacCoreStreamInfoType;
 
 #endif  // MACOSX
 #endif  // MAC_CORE_STREAM_INFO_H_

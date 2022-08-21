@@ -616,9 +616,8 @@ static PyObject *pa_open(PyObject *self, PyObject *args, PyObject *kwargs) {
                            NULL};
 
 #ifdef MACOSX
-  _pyAudio_MacOSX_hostApiSpecificStreamInfo *inputHostSpecificStreamInfo = NULL;
-  _pyAudio_MacOSX_hostApiSpecificStreamInfo *outputHostSpecificStreamInfo =
-      NULL;
+  PyAudioMacCoreStreamInfo *inputHostSpecificStreamInfo = NULL;
+  PyAudioMacCoreStreamInfo *outputHostSpecificStreamInfo = NULL;
 #else
   /* mostly ignored...*/
   PyObject *inputHostSpecificStreamInfo = NULL;
@@ -644,11 +643,11 @@ static PyObject *pa_open(PyObject *self, PyObject *args, PyObject *kwargs) {
                                    &output_device_index_arg,
                                    &frames_per_buffer,
 #ifdef MACOSX
-                                   &_pyAudio_MacOSX_hostApiSpecificStreamInfoType,
+                                   &PyAudioMacCoreStreamInfoType,
 #endif
                                    &inputHostSpecificStreamInfo,
 #ifdef MACOSX
-                                   &_pyAudio_MacOSX_hostApiSpecificStreamInfoType,
+                                   &PyAudioMacCoreStreamInfoType,
 #endif
                                    &outputHostSpecificStreamInfo,
                                    &stream_callback)) {
@@ -1487,8 +1486,7 @@ init_portaudio(void)
   }
 
 #ifdef MACOSX
-  _pyAudio_MacOSX_hostApiSpecificStreamInfoType.tp_new = PyType_GenericNew;
-  if (PyType_Ready(&_pyAudio_MacOSX_hostApiSpecificStreamInfoType) < 0) {
+  if (PyType_Ready(&PyAudioMacCoreStreamInfoType) < 0) {
     return ERROR_INIT;
   }
 #endif
@@ -1504,10 +1502,10 @@ init_portaudio(void)
   Py_INCREF(&PyAudioHostApiInfoType);
 
 #ifdef MACOSX
-  Py_INCREF(&_pyAudio_MacOSX_hostApiSpecificStreamInfoType);
+  Py_INCREF(&PyAudioMacCoreStreamInfoType);
   PyModule_AddObject(
       m, "paMacCoreStreamInfo",
-      (PyObject *)&_pyAudio_MacOSX_hostApiSpecificStreamInfoType);
+      (PyObject *)&PyAudioMacCoreStreamInfoType);
 #endif
 
   /* Add PortAudio constants */
