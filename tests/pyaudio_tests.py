@@ -628,6 +628,54 @@ class PyAudioTests(unittest.TestCase):
         out_stream.stop_stream()
         self.assertEqual(num_times_called, 2)
 
+    @unittest.skipIf(SKIP_HW_TESTS, 'Hardware device required.')
+    def test_start_stop_stream_properties(self):
+        out_stream = self.p.open(
+            format=self.p.get_format_from_width(2),
+            channels=2,
+            rate=44100,
+            output=True)
+
+        self.assertTrue(out_stream.is_active())
+        self.assertFalse(out_stream.is_stopped())
+        self.assertGreaterEqual(out_stream.get_output_latency(), 0)
+        self.assertGreaterEqual(out_stream.get_input_latency(), 0)
+        self.assertGreaterEqual(out_stream.get_time(), 0)
+        self.assertGreaterEqual(out_stream.get_cpu_load(), 0)
+
+        out_stream.stop_stream()
+
+        self.assertTrue(out_stream.is_stopped())
+        self.assertFalse(out_stream.is_active())
+        # Make sure we can still read PaStreamInfo, as stream is not closed yet.
+        self.assertGreater(out_stream.get_output_latency(), 0)
+        self.assertGreaterEqual(out_stream.get_input_latency(), 0)
+        self.assertGreaterEqual(out_stream.get_time(), 0)
+        self.assertGreaterEqual(out_stream.get_cpu_load(), 0)
+
+        out_stream.start_stream()
+
+        self.assertFalse(out_stream.is_stopped())
+        self.assertTrue(out_stream.is_active())
+        # Make sure we can still read PaStreamInfo, as stream is not closed yet.
+        self.assertGreater(out_stream.get_output_latency(), 0)
+        self.assertGreaterEqual(out_stream.get_input_latency(), 0)
+        self.assertGreaterEqual(out_stream.get_time(), 0)
+        self.assertGreaterEqual(out_stream.get_cpu_load(), 0)
+
+        out_stream.close()
+
+        with self.assertRaises(IOError):
+            self.assertTrue(out_stream.is_stopped())
+        with self.assertRaises(IOError):
+            self.assertFalse(out_stream.is_active())
+        with self.assertRaises(IOError):
+            out_stream.get_output_latency()
+        with self.assertRaises(IOError):
+            out_stream.get_time()
+        with self.assertRaises(IOError):
+            out_stream.get_cpu_load()
+
     @staticmethod
     def create_reference_signal(freqs, sampling_rate, width, duration):
         """Return reference signal with several sinuoids with frequencies
