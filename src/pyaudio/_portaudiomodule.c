@@ -32,7 +32,7 @@
 #endif
 #include "Python.h"
 
-#include "device_info.h"
+#include "device_api.h"
 #include "host_api.h"
 #include "_portaudiomodule.h"
 
@@ -635,106 +635,6 @@ static PyObject *pa_terminate(PyObject *self, PyObject *args) {
 
   Py_INCREF(Py_None);
   return Py_None;
-}
-
-/*************************************************************
- * Device API
- *************************************************************/
-
-static PyObject *pa_get_device_count(PyObject *self, PyObject *args) {
-  PaDeviceIndex count;
-
-  if (!PyArg_ParseTuple(args, "")) {
-    return NULL;
-  }
-
-  count = Pa_GetDeviceCount();
-  if (count < 0) {
-#ifdef VERBOSE
-    fprintf(stderr, "An error occured while using the portaudio stream\n");
-    fprintf(stderr, "Error number: %d\n", count);
-    fprintf(stderr, "Error message: %s\n", Pa_GetErrorText(count));
-#endif
-
-    PyErr_SetObject(PyExc_IOError,
-                    Py_BuildValue("(i,s)", count, Pa_GetErrorText(count)));
-    return NULL;
-  }
-
-  return PyLong_FromLong(count);
-}
-
-static PyObject *pa_get_default_input_device(PyObject *self, PyObject *args) {
-  PaDeviceIndex index;
-
-  if (!PyArg_ParseTuple(args, "")) {
-    return NULL;
-  }
-
-  index = Pa_GetDefaultInputDevice();
-  if (index == paNoDevice) {
-    PyErr_SetString(PyExc_IOError, "No Default Input Device Available");
-    return NULL;
-  } else if (index < 0) {
-#ifdef VERBOSE
-    fprintf(stderr, "An error occured while using the portaudio stream\n");
-    fprintf(stderr, "Error number: %d\n", index);
-    fprintf(stderr, "Error message: %s\n", Pa_GetErrorText(index));
-#endif
-
-    PyErr_SetObject(PyExc_IOError,
-                    Py_BuildValue("(i,s)", index, Pa_GetErrorText(index)));
-    return NULL;
-  }
-
-  return PyLong_FromLong(index);
-}
-
-static PyObject *pa_get_default_output_device(PyObject *self, PyObject *args) {
-  PaDeviceIndex index;
-
-  if (!PyArg_ParseTuple(args, "")) {
-    return NULL;
-  }
-
-  index = Pa_GetDefaultOutputDevice();
-  if (index == paNoDevice) {
-    PyErr_SetString(PyExc_IOError, "No Default Output Device Available");
-    return NULL;
-  } else if (index < 0) {
-#ifdef VERBOSE
-    fprintf(stderr, "An error occured while using the portaudio stream\n");
-    fprintf(stderr, "Error number: %d\n", index);
-    fprintf(stderr, "Error message: %s\n", Pa_GetErrorText(index));
-#endif
-
-    PyErr_SetObject(PyExc_IOError,
-                    Py_BuildValue("(i,s)", index, Pa_GetErrorText(index)));
-    return NULL;
-  }
-
-  return PyLong_FromLong(index);
-}
-
-static PyObject *pa_get_device_info(PyObject *self, PyObject *args) {
-  PaDeviceIndex index;
-  PaDeviceInfo *_info;
-  PyAudioDeviceInfo *py_info;
-
-  if (!PyArg_ParseTuple(args, "i", &index)) {
-    return NULL;
-  }
-
-  _info = (PaDeviceInfo *)Pa_GetDeviceInfo(index);
-  if (!_info) {
-    PyErr_SetObject(PyExc_IOError, Py_BuildValue("(i,s)", paInvalidDevice,
-                                                 "Invalid device info"));
-    return NULL;
-  }
-
-  py_info = CreatePyAudioDeviceInfo();
-  py_info->devInfo = _info;
-  return (PyObject *)py_info;
 }
 
 /*************************************************************

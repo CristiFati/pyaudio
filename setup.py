@@ -49,7 +49,7 @@ WIN_VCPKG_PATH = os.environ.get("VCPKG_PATH", None)
 
 def setup_extension():
     pyaudio_module_sources = [
-        'src/pyaudio/_portaudiomodule.c', 'src/pyaudio/device_info.c',
+        'src/pyaudio/_portaudiomodule.c', 'src/pyaudio/device_api.c',
         'src/pyaudio/host_api.c'
     ]
     include_dirs = []
