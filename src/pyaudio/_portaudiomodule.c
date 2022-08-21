@@ -431,7 +431,7 @@ static PyObject *_pyAudio_paHostApiInfo_get_defaultOutputDevice(
   return PyLong_FromLong(self->apiInfo->defaultOutputDevice);
 }
 
-static int _pyAudio_paHostApiInfo_antiset(_pyAudio_paDeviceInfo *self,
+static int _pyAudio_paHostApiInfo_antiset(_pyAudio_paHostApiInfo *self,
                                           PyObject *value, void *closure) {
   /* read-only: do not allow users to change values */
   PyErr_SetString(PyExc_AttributeError,
@@ -464,7 +464,7 @@ static PyGetSetDef _pyAudio_paHostApiInfo_getseters[] = {
 
     {"defaultOutputDevice",
      (getter)_pyAudio_paHostApiInfo_get_defaultOutputDevice,
-     (setter)_pyAudio_paDeviceInfo_antiset, "default output device index",
+     (setter)_pyAudio_paHostApiInfo_antiset, "default output device index",
      NULL},
 
     {NULL}};
