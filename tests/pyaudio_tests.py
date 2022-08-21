@@ -676,6 +676,45 @@ class PyAudioTests(unittest.TestCase):
         with self.assertRaises(IOError):
             out_stream.get_cpu_load()
 
+    @unittest.skipIf('darwin' not in sys.platform, 'macOS-only test.')
+    def test_macos_channel_map(self):
+        # reverse: R-L stereo
+        channel_map = (1, 0)
+        stream_info = pyaudio.PaMacCoreStreamInfo(
+            flags=pyaudio.PaMacCoreStreamInfo.paMacCorePlayNice, # default
+            channel_map=channel_map)
+
+        self.assertEqual(stream_info.get_flags(),
+                         pyaudio.PaMacCoreStreamInfo.paMacCorePlayNice)
+        self.assertEqual(stream_info.get_channel_map(), channel_map)
+
+        stream = self.p.open(
+            format=self.p.get_format_from_width(2),
+            channels=2,
+            rate=44100,
+            output=True,
+            output_host_api_specific_stream_info=stream_info,
+            start=False)
+
+        # Make sure portaudio no longer depends on state inside this object
+        # once the stream is initialized.
+        del stream_info
+
+        self.assertFalse(stream.is_active())
+        self.assertTrue(stream.is_stopped())
+
+        stream.start_stream()
+
+        self.assertTrue(stream.is_active())
+        self.assertFalse(stream.is_stopped())
+
+        stream.stop_stream()
+
+        self.assertFalse(stream.is_active())
+        self.assertTrue(stream.is_stopped())
+
+        stream.close()
+
     @staticmethod
     def create_reference_signal(freqs, sampling_rate, width, duration):
         """Return reference signal with several sinuoids with frequencies
