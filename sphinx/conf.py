@@ -245,7 +245,7 @@ texinfo_documents = [
 #texinfo_show_urls = 'footnote'
 
 try:
-    from _portaudio import paMacCoreStreamInfo
+    from pyaudio._portaudio import paMacCoreStreamInfo
 except ImportError:
     pass
 else:
