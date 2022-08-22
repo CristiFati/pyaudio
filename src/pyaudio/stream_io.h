@@ -7,11 +7,11 @@
 #include "Python.h"
 #include "portaudio.h"
 
-int _stream_callback_cfunction(const void *input, void *output,
-                               unsigned long frameCount,
-                               const PaStreamCallbackTimeInfo *timeInfo,
-                               PaStreamCallbackFlags statusFlags,
-                               void *userData);
+int stream_callback_cfunc(const void *input, void *output,
+                          unsigned long frameCount,
+                          const PaStreamCallbackTimeInfo *timeInfo,
+                          PaStreamCallbackFlags statusFlags, void *userData);
+
 PyObject *pa_write_stream(PyObject *self, PyObject *args);
 PyObject *pa_read_stream(PyObject *self, PyObject *args);
 PyObject *pa_get_stream_write_available(PyObject *self, PyObject *args);

@@ -8,11 +8,10 @@
 #include "Python.h"
 #include "portaudio.h"
 
-int _stream_callback_cfunction(const void *input, void *output,
-                               unsigned long frameCount,
-                               const PaStreamCallbackTimeInfo *timeInfo,
-                               PaStreamCallbackFlags statusFlags,
-                               void *userData) {
+int stream_callback_cfunc(const void *input, void *output,
+                          unsigned long frameCount,
+                          const PaStreamCallbackTimeInfo *timeInfo,
+                          PaStreamCallbackFlags statusFlags, void *userData) {
   int return_val = paAbort;
   PyGILState_STATE _state = PyGILState_Ensure();
 

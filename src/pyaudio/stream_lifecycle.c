@@ -235,7 +235,7 @@ PyObject *pa_open(PyObject *self, PyObject *args, PyObject *kwargs) {
                          so don't bother clipping them */
                       paClipOff,
                       /* callback, if specified */
-                      (stream_callback) ? (_stream_callback_cfunction) : (NULL),
+                      (stream_callback) ? (stream_callback_cfunc) : (NULL),
                       /* callback userData, if applicable */
                       context);
   Py_END_ALLOW_THREADS
