@@ -5,7 +5,6 @@
 #define PY_SSIZE_T_CLEAN
 #endif
 #include "Python.h"
-#include "portaudio.h"
 
 PyObject *pa_get_version(PyObject *self, PyObject *args);
 PyObject *pa_get_version_text(PyObject *self, PyObject *args);

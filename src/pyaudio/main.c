@@ -24,13 +24,11 @@
  * SOFTWARE.
  */
 
-#include <assert.h>
-#include <stdio.h>
-
 #ifndef PY_SSIZE_T_CLEAN
 #define PY_SSIZE_T_CLEAN
 #endif
 #include "Python.h"
+#include "portaudio.h"
 
 #include "device_api.h"
 #include "host_api.h"
@@ -40,8 +38,6 @@
 #include "stream.h"
 #include "stream_io.h"
 #include "stream_lifecycle.h"
-
-#include "portaudio.h"
 
 static PyMethodDef paMethods[] = {
     /* version */

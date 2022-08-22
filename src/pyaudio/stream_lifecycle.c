@@ -1,14 +1,16 @@
 #include "stream_lifecycle.h"
 
-#include "mac_core_stream_info.h"
-#include "stream.h"
-#include "stream_io.h"
+#include <stdio.h>
 
 #ifndef PY_SSIZE_T_CLEAN
 #define PY_SSIZE_T_CLEAN
 #endif
 #include "Python.h"
 #include "portaudio.h"
+
+#include "mac_core_stream_info.h"
+#include "stream.h"
+#include "stream_io.h"
 
 #define DEFAULT_FRAMES_PER_BUFFER paFramesPerBufferUnspecified
 

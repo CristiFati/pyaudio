@@ -5,7 +5,6 @@
 #define PY_SSIZE_T_CLEAN
 #endif
 #include "Python.h"
-#include "portaudio.h"
 
 // Python object wrapper for PortAudio's PaDeviceInfo struct.
 extern PyTypeObject PyAudioDeviceInfoType;

@@ -1,12 +1,15 @@
 #include "stream_io.h"
 
-#include "stream.h"
+#include <assert.h>
+#include <stdio.h>
 
 #ifndef PY_SSIZE_T_CLEAN
 #define PY_SSIZE_T_CLEAN
 #endif
 #include "Python.h"
 #include "portaudio.h"
+
+#include "stream.h"
 
 int stream_callback_cfunc(const void *input, void *output,
                           unsigned long frameCount,

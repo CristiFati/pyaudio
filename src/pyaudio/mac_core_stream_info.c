@@ -6,8 +6,8 @@
 #define PY_SSIZE_T_CLEAN
 #endif
 #include "Python.h"
-#include "pa_mac_core.h"
 #include "portaudio.h"
+#include "pa_mac_core.h"
 
 static void cleanup(PyAudioMacCoreStreamInfo *self) {
   if (self->channelMap != NULL) {
