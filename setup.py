@@ -55,6 +55,7 @@ def setup_extension():
         'src/pyaudio/init.c',
         'src/pyaudio/mac_core_stream_info.c',
         'src/pyaudio/misc.c',
+        'src/pyaudio/stream.c',
     ]
     include_dirs = []
     external_libraries = ["portaudio"]
