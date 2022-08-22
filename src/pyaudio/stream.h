@@ -23,12 +23,18 @@ typedef struct {
   PaStreamInfo *streamInfo;
   PyAudioCallbackContext *callbackContext;
   int is_open;
-} _pyAudio_Stream;
+} PyAudioStream;
 
-extern PyTypeObject _pyAudio_StreamType;
+extern PyTypeObject PyAudioStreamType;
 
-_pyAudio_Stream *_create_Stream_object(void);
-int _is_open(_pyAudio_Stream *obj);
-void _cleanup_Stream_object(_pyAudio_Stream *streamObject);
+// "Internal" utilities for other stream_*.c modules.
+
+int is_stream_open(PyAudioStream *obj);
+void cleanup_stream(PyAudioStream *streamObject);
+
+// Public exported functions.
+
+PyObject *pa_get_stream_time(PyObject *self, PyObject *args);
+PyObject *pa_get_stream_cpu_load(PyObject *self, PyObject *args);
 
 #endif  // STREAM_H_

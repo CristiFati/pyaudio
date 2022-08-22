@@ -54,12 +54,6 @@ pa_is_stream_stopped(PyObject *self, PyObject *args);
 static PyObject *
 pa_is_stream_active(PyObject *self, PyObject *args);
 
-static PyObject *
-pa_get_stream_time(PyObject *self, PyObject *args);
-
-static PyObject *
-pa_get_stream_cpu_load(PyObject *self, PyObject *args);
-
 /* stream write/read */
 
 static PyObject *

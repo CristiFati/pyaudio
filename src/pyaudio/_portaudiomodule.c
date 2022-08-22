@@ -325,7 +325,7 @@ static PyObject *pa_open(PyObject *self, PyObject *args, PyObject *kwargs) {
   PaStream *stream = NULL;
   PaStreamInfo *streamInfo = NULL;
   PyAudioCallbackContext *context = NULL;
-  _pyAudio_Stream *streamObject;
+  PyAudioStream *streamObject;
 
   static char *kwlist[] = {"rate",
                            "channels",
@@ -558,7 +558,8 @@ static PyObject *pa_open(PyObject *self, PyObject *args, PyObject *kwargs) {
     return NULL;
   }
 
-  streamObject = _create_Stream_object();
+  streamObject =
+      (PyAudioStream *)PyObject_New(PyAudioStream, &PyAudioStreamType);
   streamObject->stream = stream;
   streamObject->inputParameters = inputParameters;
   streamObject->outputParameters = outputParameters;
@@ -570,15 +571,15 @@ static PyObject *pa_open(PyObject *self, PyObject *args, PyObject *kwargs) {
 
 static PyObject *pa_close(PyObject *self, PyObject *args) {
   PyObject *stream_arg;
-  _pyAudio_Stream *streamObject;
+  PyAudioStream *streamObject;
 
-  if (!PyArg_ParseTuple(args, "O!", &_pyAudio_StreamType, &stream_arg)) {
+  if (!PyArg_ParseTuple(args, "O!", &PyAudioStreamType, &stream_arg)) {
     return NULL;
   }
 
-  streamObject = (_pyAudio_Stream *)stream_arg;
+  streamObject = (PyAudioStream *)stream_arg;
 
-  _cleanup_Stream_object(streamObject);
+  cleanup_stream(streamObject);
 
   Py_INCREF(Py_None);
   return Py_None;
@@ -592,15 +593,15 @@ static PyObject *pa_close(PyObject *self, PyObject *args) {
 static PyObject *pa_start_stream(PyObject *self, PyObject *args) {
   int err;
   PyObject *stream_arg;
-  _pyAudio_Stream *streamObject;
+  PyAudioStream *streamObject;
 
-  if (!PyArg_ParseTuple(args, "O!", &_pyAudio_StreamType, &stream_arg)) {
+  if (!PyArg_ParseTuple(args, "O!", &PyAudioStreamType, &stream_arg)) {
     return NULL;
   }
 
-  streamObject = (_pyAudio_Stream *)stream_arg;
+  streamObject = (PyAudioStream *)stream_arg;
 
-  if (!_is_open(streamObject)) {
+  if (!is_stream_open(streamObject)) {
     PyErr_SetObject(PyExc_IOError,
                     Py_BuildValue("(i,s)", paBadStreamPtr, "Stream closed"));
     return NULL;
@@ -614,7 +615,7 @@ static PyObject *pa_start_stream(PyObject *self, PyObject *args) {
 
   if ((err != paNoError) &&
       (err != paStreamIsNotStopped)) {
-    _cleanup_Stream_object(streamObject);
+    cleanup_stream(streamObject);
 
 #ifdef VERBOSE
     fprintf(stderr, "An error occured while using the portaudio stream\n");
@@ -634,15 +635,15 @@ static PyObject *pa_start_stream(PyObject *self, PyObject *args) {
 static PyObject *pa_stop_stream(PyObject *self, PyObject *args) {
   int err;
   PyObject *stream_arg;
-  _pyAudio_Stream *streamObject;
+  PyAudioStream *streamObject;
 
-  if (!PyArg_ParseTuple(args, "O!", &_pyAudio_StreamType, &stream_arg)) {
+  if (!PyArg_ParseTuple(args, "O!", &PyAudioStreamType, &stream_arg)) {
     return NULL;
   }
 
-  streamObject = (_pyAudio_Stream *)stream_arg;
+  streamObject = (PyAudioStream *)stream_arg;
 
-  if (!_is_open(streamObject)) {
+  if (!is_stream_open(streamObject)) {
     PyErr_SetString(PyExc_IOError, "Stream not open");
     return NULL;
   }
@@ -654,7 +655,7 @@ static PyObject *pa_stop_stream(PyObject *self, PyObject *args) {
   // clang-format on
 
   if ((err != paNoError) && (err != paStreamIsStopped)) {
-    _cleanup_Stream_object(streamObject);
+    cleanup_stream(streamObject);
 
 #ifdef VERBOSE
     fprintf(stderr, "An error occured while using the portaudio stream\n");
@@ -674,15 +675,15 @@ static PyObject *pa_stop_stream(PyObject *self, PyObject *args) {
 static PyObject *pa_abort_stream(PyObject *self, PyObject *args) {
   int err;
   PyObject *stream_arg;
-  _pyAudio_Stream *streamObject;
+  PyAudioStream *streamObject;
 
-  if (!PyArg_ParseTuple(args, "O!", &_pyAudio_StreamType, &stream_arg)) {
+  if (!PyArg_ParseTuple(args, "O!", &PyAudioStreamType, &stream_arg)) {
     return NULL;
   }
 
-  streamObject = (_pyAudio_Stream *)stream_arg;
+  streamObject = (PyAudioStream *)stream_arg;
 
-  if (!_is_open(streamObject)) {
+  if (!is_stream_open(streamObject)) {
     PyErr_SetString(PyExc_IOError, "Stream not open");
     return NULL;
   }
@@ -694,7 +695,7 @@ static PyObject *pa_abort_stream(PyObject *self, PyObject *args) {
   // clang-format on
 
   if ((err != paNoError) && (err != paStreamIsStopped)) {
-    _cleanup_Stream_object(streamObject);
+    cleanup_stream(streamObject);
 
 #ifdef VERBOSE
     fprintf(stderr, "An error occured while using the portaudio stream\n");
@@ -714,15 +715,15 @@ static PyObject *pa_abort_stream(PyObject *self, PyObject *args) {
 static PyObject *pa_is_stream_stopped(PyObject *self, PyObject *args) {
   int err;
   PyObject *stream_arg;
-  _pyAudio_Stream *streamObject;
+  PyAudioStream *streamObject;
 
-  if (!PyArg_ParseTuple(args, "O!", &_pyAudio_StreamType, &stream_arg)) {
+  if (!PyArg_ParseTuple(args, "O!", &PyAudioStreamType, &stream_arg)) {
     return NULL;
   }
 
-  streamObject = (_pyAudio_Stream *)stream_arg;
+  streamObject = (PyAudioStream *)stream_arg;
 
-  if (!_is_open(streamObject)) {
+  if (!is_stream_open(streamObject)) {
     PyErr_SetObject(PyExc_IOError,
                     Py_BuildValue("(i,s)", paBadStreamPtr, "Stream closed"));
     return NULL;
@@ -735,7 +736,7 @@ static PyObject *pa_is_stream_stopped(PyObject *self, PyObject *args) {
   // clang-format on
 
   if (err < 0) {
-    _cleanup_Stream_object(streamObject);
+    cleanup_stream(streamObject);
 
 #ifdef VERBOSE
     fprintf(stderr, "An error occured while using the portaudio stream\n");
@@ -760,15 +761,15 @@ static PyObject *pa_is_stream_stopped(PyObject *self, PyObject *args) {
 static PyObject *pa_is_stream_active(PyObject *self, PyObject *args) {
   int err;
   PyObject *stream_arg;
-  _pyAudio_Stream *streamObject;
+  PyAudioStream *streamObject;
 
-  if (!PyArg_ParseTuple(args, "O!", &_pyAudio_StreamType, &stream_arg)) {
+  if (!PyArg_ParseTuple(args, "O!", &PyAudioStreamType, &stream_arg)) {
     return NULL;
   }
 
-  streamObject = (_pyAudio_Stream *)stream_arg;
+  streamObject = (PyAudioStream *)stream_arg;
 
-  if (!_is_open(streamObject)) {
+  if (!is_stream_open(streamObject)) {
     PyErr_SetString(PyExc_IOError, "Stream not open");
     return NULL;
   }
@@ -780,7 +781,7 @@ static PyObject *pa_is_stream_active(PyObject *self, PyObject *args) {
   // clang-format on
 
   if (err < 0) {
-    _cleanup_Stream_object(streamObject);
+    cleanup_stream(streamObject);
 
 #ifdef VERBOSE
     fprintf(stderr, "An error occured while using the portaudio stream\n");
@@ -802,65 +803,6 @@ static PyObject *pa_is_stream_active(PyObject *self, PyObject *args) {
   return Py_False;
 }
 
-static PyObject *pa_get_stream_time(PyObject *self, PyObject *args) {
-  double time;
-  PyObject *stream_arg;
-  _pyAudio_Stream *streamObject;
-
-  if (!PyArg_ParseTuple(args, "O!", &_pyAudio_StreamType, &stream_arg)) {
-    return NULL;
-  }
-
-  streamObject = (_pyAudio_Stream *)stream_arg;
-
-  if (!_is_open(streamObject)) {
-    PyErr_SetObject(PyExc_IOError,
-                    Py_BuildValue("(i,s)", paBadStreamPtr, "Stream closed"));
-    return NULL;
-  }
-
-  // clang-format off
-  Py_BEGIN_ALLOW_THREADS
-  time = Pa_GetStreamTime(streamObject->stream);
-  Py_END_ALLOW_THREADS
-  // clang-format on
-
-  if (time == 0) {
-    _cleanup_Stream_object(streamObject);
-    PyErr_SetObject(PyExc_IOError,
-                    Py_BuildValue("(i,s)", paInternalError, "Internal Error"));
-    return NULL;
-  }
-
-  return PyFloat_FromDouble(time);
-}
-
-static PyObject *pa_get_stream_cpu_load(PyObject *self, PyObject *args) {
-  double cpuload;
-  PyObject *stream_arg;
-  _pyAudio_Stream *streamObject;
-
-  if (!PyArg_ParseTuple(args, "O!", &_pyAudio_StreamType, &stream_arg)) {
-    return NULL;
-  }
-
-  streamObject = (_pyAudio_Stream *)stream_arg;
-
-  if (!_is_open(streamObject)) {
-    PyErr_SetObject(PyExc_IOError,
-                    Py_BuildValue("(i,s)", paBadStreamPtr, "Stream closed"));
-    return NULL;
-  }
-
-  // clang-format off
-  Py_BEGIN_ALLOW_THREADS
-  cpuload = Pa_GetStreamCpuLoad(streamObject->stream);
-  Py_END_ALLOW_THREADS
-  // clang-format on
-
-  return PyFloat_FromDouble(cpuload);
-}
-
 /*************************************************************
  * Stream Read/Write
  *************************************************************/
@@ -873,11 +815,11 @@ static PyObject *pa_write_stream(PyObject *self, PyObject *args) {
   int should_throw_exception = 0;
 
   PyObject *stream_arg;
-  _pyAudio_Stream *streamObject;
+  PyAudioStream *streamObject;
 
   // clang-format off
   if (!PyArg_ParseTuple(args, "O!s#i|i",
-                        &_pyAudio_StreamType,
+                        &PyAudioStreamType,
                         &stream_arg,
                         &data,
                         &total_size,
@@ -892,9 +834,9 @@ static PyObject *pa_write_stream(PyObject *self, PyObject *args) {
     return NULL;
   }
 
-  streamObject = (_pyAudio_Stream *)stream_arg;
+  streamObject = (PyAudioStream *)stream_arg;
 
-  if (!_is_open(streamObject)) {
+  if (!is_stream_open(streamObject)) {
     PyErr_SetObject(PyExc_IOError,
                     Py_BuildValue("(i,s)", paBadStreamPtr, "Stream closed"));
     return NULL;
@@ -919,7 +861,7 @@ static PyObject *pa_write_stream(PyObject *self, PyObject *args) {
   return Py_None;
 
 error:
-  _cleanup_Stream_object(streamObject);
+  cleanup_stream(streamObject);
 
 #ifdef VERBOSE
   fprintf(stderr, "An error occured while using the portaudio stream\n");
@@ -941,12 +883,12 @@ static PyObject *pa_read_stream(PyObject *self, PyObject *args) {
   int should_raise_exception = 0;
 
   PyObject *stream_arg;
-  _pyAudio_Stream *streamObject;
+  PyAudioStream *streamObject;
   PaStreamParameters *inputParameters;
 
   // clang-format off
   if (!PyArg_ParseTuple(args, "O!i|i",
-                        &_pyAudio_StreamType,
+                        &PyAudioStreamType,
                         &stream_arg,
                         &total_frames,
                         &should_raise_exception)) {
@@ -959,9 +901,9 @@ static PyObject *pa_read_stream(PyObject *self, PyObject *args) {
     return NULL;
   }
 
-  streamObject = (_pyAudio_Stream *)stream_arg;
+  streamObject = (PyAudioStream *)stream_arg;
 
-  if (!_is_open(streamObject)) {
+  if (!is_stream_open(streamObject)) {
     PyErr_SetObject(PyExc_IOError,
                     Py_BuildValue("(i,s)", paBadStreamPtr, "Stream closed"));
     return NULL;
@@ -1003,7 +945,7 @@ static PyObject *pa_read_stream(PyObject *self, PyObject *args) {
   return rv;
 
 error:
-  _cleanup_Stream_object(streamObject);
+  cleanup_stream(streamObject);
   Py_XDECREF(rv);
   PyErr_SetObject(PyExc_IOError,
                   Py_BuildValue("(i,s)", err, Pa_GetErrorText(err)));
@@ -1020,15 +962,15 @@ error:
 static PyObject *pa_get_stream_write_available(PyObject *self, PyObject *args) {
   signed long frames;
   PyObject *stream_arg;
-  _pyAudio_Stream *streamObject;
+  PyAudioStream *streamObject;
 
-  if (!PyArg_ParseTuple(args, "O!", &_pyAudio_StreamType, &stream_arg)) {
+  if (!PyArg_ParseTuple(args, "O!", &PyAudioStreamType, &stream_arg)) {
     return NULL;
   }
 
-  streamObject = (_pyAudio_Stream *)stream_arg;
+  streamObject = (PyAudioStream *)stream_arg;
 
-  if (!_is_open(streamObject)) {
+  if (!is_stream_open(streamObject)) {
     PyErr_SetObject(PyExc_IOError,
                     Py_BuildValue("(i,s)", paBadStreamPtr, "Stream closed"));
     return NULL;
@@ -1046,15 +988,15 @@ static PyObject *pa_get_stream_write_available(PyObject *self, PyObject *args) {
 static PyObject *pa_get_stream_read_available(PyObject *self, PyObject *args) {
   signed long frames;
   PyObject *stream_arg;
-  _pyAudio_Stream *streamObject;
+  PyAudioStream *streamObject;
 
-  if (!PyArg_ParseTuple(args, "O!", &_pyAudio_StreamType, &stream_arg)) {
+  if (!PyArg_ParseTuple(args, "O!", &PyAudioStreamType, &stream_arg)) {
     return NULL;
   }
 
-  streamObject = (_pyAudio_Stream *)stream_arg;
+  streamObject = (PyAudioStream *)stream_arg;
 
-  if (!_is_open(streamObject)) {
+  if (!is_stream_open(streamObject)) {
     PyErr_SetObject(PyExc_IOError,
                     Py_BuildValue("(i,s)", paBadStreamPtr, "Stream closed"));
     return NULL;
@@ -1108,8 +1050,7 @@ init_portaudio(void)
   PyEval_InitThreads();
 #endif
 
-  _pyAudio_StreamType.tp_new = PyType_GenericNew;
-  if (PyType_Ready(&_pyAudio_StreamType) < 0) {
+  if (PyType_Ready(&PyAudioStreamType) < 0) {
     return ERROR_INIT;
   }
 
@@ -1133,7 +1074,7 @@ init_portaudio(void)
   m = Py_InitModule("_portaudio", paMethods);
 #endif
 
-  Py_INCREF(&_pyAudio_StreamType);
+  Py_INCREF(&PyAudioStreamType);
   Py_INCREF(&PyAudioDeviceInfoType);
   Py_INCREF(&PyAudioHostApiInfoType);
 
