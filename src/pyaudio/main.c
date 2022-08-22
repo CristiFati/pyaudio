@@ -43,8 +43,6 @@
 
 #include "portaudio.h"
 
-/* #define VERBOSE */
-
 static PyMethodDef paMethods[] = {
     /* version */
     {"get_version", pa_get_version, METH_VARARGS, "get version"},
