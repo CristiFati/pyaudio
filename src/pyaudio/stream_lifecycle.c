@@ -29,7 +29,6 @@ PyObject *pa_open(PyObject *self, PyObject *args, PyObject *kwargs) {
   PaStreamParameters *outputParameters = NULL;
   PaStreamParameters *inputParameters = NULL;
   PaStream *stream = NULL;
-  PaStreamInfo *streamInfo = NULL;
   PyAudioCallbackContext *context = NULL;
   PyAudioStream *streamObject;
 
@@ -255,21 +254,11 @@ PyObject *pa_open(PyObject *self, PyObject *args, PyObject *kwargs) {
     return NULL;
   }
 
-  streamInfo = (PaStreamInfo *)Pa_GetStreamInfo(stream);
-  if (!streamInfo) {
-    PyErr_SetObject(PyExc_IOError,
-                    Py_BuildValue("(i,s)", paInternalError,
-                                  "Could not get stream information"));
-
-    return NULL;
-  }
-
   streamObject =
       (PyAudioStream *)PyObject_New(PyAudioStream, &PyAudioStreamType);
   streamObject->stream = stream;
   streamObject->inputParameters = inputParameters;
   streamObject->outputParameters = outputParameters;
-  streamObject->streamInfo = streamInfo;
   streamObject->callbackContext = context;
   return (PyObject *)streamObject;
 }

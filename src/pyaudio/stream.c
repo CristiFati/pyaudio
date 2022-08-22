@@ -18,13 +18,16 @@ static PyObject *get_structVersion(PyAudioStream *self, void *closure) {
     return NULL;
   }
 
-  if ((!self->streamInfo)) {
-    PyErr_SetObject(PyExc_IOError, Py_BuildValue("(i,s)", paBadStreamPtr,
-                                                 "No StreamInfo available"));
+  const PaStreamInfo *stream_info = Pa_GetStreamInfo(self->stream);
+  if (!stream_info) {
+    PyErr_SetObject(PyExc_IOError,
+                    Py_BuildValue("(i,s)", paInternalError,
+                                  "Could not get stream information"));
+
     return NULL;
   }
 
-  return PyLong_FromLong(self->streamInfo->structVersion);
+  return PyLong_FromLong(stream_info->structVersion);
 }
 
 static PyObject *get_inputLatency(PyAudioStream *self, void *closure) {
@@ -34,13 +37,16 @@ static PyObject *get_inputLatency(PyAudioStream *self, void *closure) {
     return NULL;
   }
 
-  if ((!self->streamInfo)) {
-    PyErr_SetObject(PyExc_IOError, Py_BuildValue("(i,s)", paBadStreamPtr,
-                                                 "No StreamInfo available"));
+  const PaStreamInfo *stream_info = Pa_GetStreamInfo(self->stream);
+  if (!stream_info) {
+    PyErr_SetObject(PyExc_IOError,
+                    Py_BuildValue("(i,s)", paInternalError,
+                                  "Could not get stream information"));
+
     return NULL;
   }
 
-  return PyFloat_FromDouble(self->streamInfo->inputLatency);
+  return PyFloat_FromDouble(stream_info->inputLatency);
 }
 
 static PyObject *get_outputLatency(PyAudioStream *self, void *closure) {
@@ -50,13 +56,16 @@ static PyObject *get_outputLatency(PyAudioStream *self, void *closure) {
     return NULL;
   }
 
-  if ((!self->streamInfo)) {
-    PyErr_SetObject(PyExc_IOError, Py_BuildValue("(i,s)", paBadStreamPtr,
-                                                 "No StreamInfo available"));
+  const PaStreamInfo *stream_info = Pa_GetStreamInfo(self->stream);
+  if (!stream_info) {
+    PyErr_SetObject(PyExc_IOError,
+                    Py_BuildValue("(i,s)", paInternalError,
+                                  "Could not get stream information"));
+
     return NULL;
   }
 
-  return PyFloat_FromDouble(self->streamInfo->outputLatency);
+  return PyFloat_FromDouble(stream_info->outputLatency);
 }
 
 static PyObject *get_sampleRate(PyAudioStream *self, void *closure) {
@@ -66,13 +75,16 @@ static PyObject *get_sampleRate(PyAudioStream *self, void *closure) {
     return NULL;
   }
 
-  if ((!self->streamInfo)) {
-    PyErr_SetObject(PyExc_IOError, Py_BuildValue("(i,s)", paBadStreamPtr,
-                                                 "No StreamInfo available"));
+  const PaStreamInfo *stream_info = Pa_GetStreamInfo(self->stream);
+  if (!stream_info) {
+    PyErr_SetObject(PyExc_IOError,
+                    Py_BuildValue("(i,s)", paInternalError,
+                                  "Could not get stream information"));
+
     return NULL;
   }
 
-  return PyFloat_FromDouble(self->streamInfo->sampleRate);
+  return PyFloat_FromDouble(stream_info->sampleRate);
 }
 
 static int antiset(PyAudioStream *self, PyObject *value, void *closure) {
@@ -123,8 +135,6 @@ void cleanup_stream(PyAudioStream *stream) {
     // clang-format on
     stream->stream = NULL;
   }
-
-  if (stream->streamInfo) stream->streamInfo = NULL;
 
   if (stream->inputParameters != NULL) {
     free(stream->inputParameters);

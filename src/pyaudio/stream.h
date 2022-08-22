@@ -20,7 +20,6 @@ typedef struct {
   PaStream *stream;
   PaStreamParameters *inputParameters;
   PaStreamParameters *outputParameters;
-  PaStreamInfo *streamInfo;
   PyAudioCallbackContext *callbackContext;
 } PyAudioStream;
 
