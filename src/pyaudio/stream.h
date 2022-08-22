@@ -22,7 +22,6 @@ typedef struct {
   PaStreamParameters *outputParameters;
   PaStreamInfo *streamInfo;
   PyAudioCallbackContext *callbackContext;
-  int is_open;
 } PyAudioStream;
 
 extern PyTypeObject PyAudioStreamType;

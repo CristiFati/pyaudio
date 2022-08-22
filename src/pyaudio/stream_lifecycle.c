@@ -269,7 +269,6 @@ PyObject *pa_open(PyObject *self, PyObject *args, PyObject *kwargs) {
   streamObject->stream = stream;
   streamObject->inputParameters = inputParameters;
   streamObject->outputParameters = outputParameters;
-  streamObject->is_open = 1;
   streamObject->streamInfo = streamInfo;
   streamObject->callbackContext = context;
   return (PyObject *)streamObject;

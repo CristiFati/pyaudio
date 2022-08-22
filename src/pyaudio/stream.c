@@ -111,7 +111,7 @@ PyTypeObject PyAudioStreamType = {
 };
 
 int is_stream_open(PyAudioStream *stream) {
-  return (stream) && (stream->is_open);
+  return (stream) && (stream->stream != NULL);
 }
 
 void cleanup_stream(PyAudioStream *stream) {
@@ -120,8 +120,8 @@ void cleanup_stream(PyAudioStream *stream) {
     Py_BEGIN_ALLOW_THREADS
     Pa_CloseStream(stream->stream);
     Py_END_ALLOW_THREADS
-        // clang-format on
-        stream->stream = NULL;
+    // clang-format on
+    stream->stream = NULL;
   }
 
   if (stream->streamInfo) stream->streamInfo = NULL;
@@ -141,8 +141,6 @@ void cleanup_stream(PyAudioStream *stream) {
     free(stream->callbackContext);
     stream->callbackContext = NULL;
   }
-
-  stream->is_open = 0;
 }
 
 PyObject *pa_get_stream_time(PyObject *self, PyObject *args) {
