@@ -12,9 +12,9 @@ int stream_callback_cfunc(const void *input, void *output,
                           const PaStreamCallbackTimeInfo *timeInfo,
                           PaStreamCallbackFlags statusFlags, void *userData);
 
-PyObject *pa_write_stream(PyObject *self, PyObject *args);
-PyObject *pa_read_stream(PyObject *self, PyObject *args);
-PyObject *pa_get_stream_write_available(PyObject *self, PyObject *args);
-PyObject *pa_get_stream_read_available(PyObject *self, PyObject *args);
+PyObject *WriteStream(PyObject *self, PyObject *args);
+PyObject *ReadStream(PyObject *self, PyObject *args);
+PyObject *GetStreamWriteAvailable(PyObject *self, PyObject *args);
+PyObject *GetStreamReadAvailable(PyObject *self, PyObject *args);
 
 #endif  // STREAM_IO_H

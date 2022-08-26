@@ -39,81 +39,93 @@
 #include "stream_io.h"
 #include "stream_lifecycle.h"
 
-static PyMethodDef paMethods[] = {
-    /* version */
-    {"get_version", pa_get_version, METH_VARARGS, "get version"},
-    {"get_version_text", pa_get_version_text, METH_VARARGS, "get version text"},
+static PyMethodDef exported_functions[] = {
+    // init.h
+    {"initialize", Initialize, METH_VARARGS, "Initializes PortAudio"},
 
-    /* inits */
-    {"initialize", pa_initialize, METH_VARARGS, "initialize portaudio"},
-    {"terminate", pa_terminate, METH_VARARGS, "terminate portaudio"},
+    {"terminate", Terminate, METH_VARARGS, "Terminates PortAudio"},
 
-    /* host api */
-    {"get_host_api_count", pa_get_host_api_count, METH_VARARGS,
-     "get host API count"},
+    // misc.h
+    {"get_sample_size", GetSampleSize, METH_VARARGS,
+     "Returns sample size of a format in bytes"},
 
-    {"get_default_host_api", pa_get_default_host_api, METH_VARARGS,
-     "get default host API index"},
+    {"is_format_supported", IsFormatSupported, METH_VARARGS | METH_KEYWORDS,
+     "Returns whether format is supported"},
 
-    {"host_api_type_id_to_host_api_index",
-     pa_host_api_type_id_to_host_api_index, METH_VARARGS,
-     "get default host API index"},
+    {"get_version", GetVersion, METH_VARARGS, "PortAudio version"},
 
-    {"host_api_device_index_to_device_index",
-     pa_host_api_device_index_to_device_index, METH_VARARGS,
-     "get default host API index"},
+    {"get_version_text", GetVersionText, METH_VARARGS,
+     "PortAudio version text"},
 
-    {"get_host_api_info", pa_get_host_api_info, METH_VARARGS,
-     "get host api information"},
+    // host_api.h
+    {"get_host_api_count", GetHostApiCount, METH_VARARGS,
+     "Returns the number of Host APIs"},
 
-    /* device api */
-    {"get_device_count", pa_get_device_count, METH_VARARGS,
-     "get host API count"},
+    {"get_default_host_api", GetDefaultHostApi, METH_VARARGS,
+     "Returns the default Host API index"},
 
-    {"get_default_input_device", pa_get_default_input_device, METH_VARARGS,
-     "get default input device index"},
+    {"host_api_type_id_to_host_api_index", HostApiTypeIdToHostApiIndex,
+     METH_VARARGS,
+     "Returns the Host API index for given a PortAudio Host API Type ID"},
 
-    {"get_default_output_device", pa_get_default_output_device, METH_VARARGS,
-     "get default output device index"},
+    {"host_api_device_index_to_device_index", HostApiDeviceIndexToDeviceIndex,
+     METH_VARARGS,
+     "Returns a Host API-specific device index to PortAudio device index"},
 
-    {"get_device_info", pa_get_device_info, METH_VARARGS,
-     "get device information"},
+    {"get_host_api_info", GetHostApiInfo, METH_VARARGS,
+     "Returns an object with information about the Host API"},
 
-    /* stream open/close */
-    {"open", (PyCFunction)pa_open, METH_VARARGS | METH_KEYWORDS,
-     "open port audio stream"},
-    {"close", pa_close, METH_VARARGS, "close port audio stream"},
-    {"get_sample_size", pa_get_sample_size, METH_VARARGS,
-     "get sample size of a format in bytes"},
-    {"is_format_supported", (PyCFunction)pa_is_format_supported,
-     METH_VARARGS | METH_KEYWORDS,
-     "returns whether specified format is supported"},
+    // device_api.h
+    {"get_device_count", GetDeviceCount, METH_VARARGS,
+     "Returns the number of available devices"},
 
-    /* stream start/stop */
-    {"start_stream", pa_start_stream, METH_VARARGS, "starts port audio stream"},
-    {"stop_stream", pa_stop_stream, METH_VARARGS, "stops  port audio stream"},
-    {"abort_stream", pa_abort_stream, METH_VARARGS, "aborts port audio stream"},
-    {"is_stream_stopped", pa_is_stream_stopped, METH_VARARGS,
-     "returns whether stream is stopped"},
-    {"is_stream_active", pa_is_stream_active, METH_VARARGS,
-     "returns whether stream is active"},
-    {"get_stream_time", pa_get_stream_time, METH_VARARGS,
-     "returns stream time"},
-    {"get_stream_cpu_load", pa_get_stream_cpu_load, METH_VARARGS,
-     "returns stream CPU load -- always 0 for blocking mode"},
+    {"get_default_input_device", GetDefaultInputDevice, METH_VARARGS,
+     "Returns the default input device index"},
 
-    /* stream read/write */
-    {"write_stream", pa_write_stream, METH_VARARGS, "write to stream"},
-    {"read_stream", pa_read_stream, METH_VARARGS, "read from stream"},
+    {"get_default_output_device", GetDefaultOutputDevice, METH_VARARGS,
+     "Returns the default output device index"},
 
-    {"get_stream_write_available", pa_get_stream_write_available, METH_VARARGS,
-     "get buffer available for writing"},
+    {"get_device_info", GetDeviceInfo, METH_VARARGS,
+     "Returns an object with device properties"},
 
-    {"get_stream_read_available", pa_get_stream_read_available, METH_VARARGS,
-     "get buffer available for reading"},
+    // stream.h
+    {"get_stream_time", GetStreamTime, METH_VARARGS,
+     "Returns the number of seconds for the stream. See PortAudio docs for "
+     "details."},
+
+    {"get_stream_cpu_load", GetStreamCpuLoad, METH_VARARGS,
+     "Returns the stream's CPU load (always 0 for blocking mode)"},
+
+    // stream_lifecycle.h (and stream.h)
+    {"open", OpenStream, METH_VARARGS | METH_KEYWORDS,
+     "Opens a PortAudio stream"},
+
+    {"close", CloseStream, METH_VARARGS, "Closes a PortAudio stream"},
+
+    {"start_stream", StartStream, METH_VARARGS, "Starts the stream"},
+
+    {"stop_stream", StopStream, METH_VARARGS, "Stops (pauses) the stream"},
+
+    {"abort_stream", AbortStream, METH_VARARGS, "Aborts the stream"},
+
+    {"is_stream_stopped", IsStreamStopped, METH_VARARGS,
+     "Returns whether the stream is stopped"},
+
+    {"is_stream_active", IsStreamActive, METH_VARARGS,
+     "Returns whether the stream is active"},
+
+    // stream_io.h (and stream.h)
+    {"write_stream", WriteStream, METH_VARARGS, "Write samples to stream"},
+
+    {"read_stream", ReadStream, METH_VARARGS, "Read samples from stream"},
+
+    {"get_stream_write_available", GetStreamWriteAvailable, METH_VARARGS,
+     "Returns the number of frames that can be written without waiting"},
+
+    {"get_stream_read_available", GetStreamReadAvailable, METH_VARARGS,
+     "Returns the number of frames that can be read without waiting"},
 
     {NULL, NULL, 0, NULL}};
-
 
 #if PY_MAJOR_VERSION >= 3
 #define ERROR_INIT NULL
@@ -127,7 +139,7 @@ static struct PyModuleDef moduledef = {  //
     "_portaudio",
     NULL,
     -1,
-    paMethods,
+    exported_functions,
     NULL,
     NULL,
     NULL,
@@ -169,23 +181,21 @@ init_portaudio(void)
 #if PY_MAJOR_VERSION >= 3
   m = PyModule_Create(&moduledef);
 #else
-  m = Py_InitModule("_portaudio", paMethods);
+  m = Py_InitModule("_portaudio", exported_functions);
 #endif
 
   Py_INCREF(&PyAudioStreamType);
   Py_INCREF(&PyAudioDeviceInfoType);
   Py_INCREF(&PyAudioHostApiInfoType);
-
 #ifdef MACOSX
   Py_INCREF(&PyAudioMacCoreStreamInfoType);
-  PyModule_AddObject(
-      m, "paMacCoreStreamInfo",
-      (PyObject *)&PyAudioMacCoreStreamInfoType);
+  PyModule_AddObject(m, "paMacCoreStreamInfo",
+                     (PyObject *)&PyAudioMacCoreStreamInfoType);
 #endif
 
-  /* Add PortAudio constants */
+  // Add PortAudio constants
 
-  /* host apis */
+  // Host APIs
   PyModule_AddIntConstant(m, "paInDevelopment", paInDevelopment);
   PyModule_AddIntConstant(m, "paDirectSound", paDirectSound);
   PyModule_AddIntConstant(m, "paMME", paMME);
@@ -201,7 +211,7 @@ init_portaudio(void)
   PyModule_AddIntConstant(m, "paWASAPI", paWASAPI);
   PyModule_AddIntConstant(m, "paNoDevice", paNoDevice);
 
-  /* formats */
+  // Formats
   PyModule_AddIntConstant(m, "paFloat32", paFloat32);
   PyModule_AddIntConstant(m, "paInt32", paInt32);
   PyModule_AddIntConstant(m, "paInt24", paInt24);
@@ -210,7 +220,7 @@ init_portaudio(void)
   PyModule_AddIntConstant(m, "paUInt8", paUInt8);
   PyModule_AddIntConstant(m, "paCustomFormat", paCustomFormat);
 
-  /* error codes */
+  // Error codes
   PyModule_AddIntConstant(m, "paNoError", paNoError);
   PyModule_AddIntConstant(m, "paNotInitialized", paNotInitialized);
   PyModule_AddIntConstant(m, "paUnanticipatedHostError",
@@ -250,19 +260,19 @@ init_portaudio(void)
   PyModule_AddIntConstant(m, "paIncompatibleStreamHostApi",
                           paIncompatibleStreamHostApi);
 
-  /* callback constants */
+  // Callback constants
   PyModule_AddIntConstant(m, "paContinue", paContinue);
   PyModule_AddIntConstant(m, "paComplete", paComplete);
   PyModule_AddIntConstant(m, "paAbort", paAbort);
 
-  /* callback status flags */
+  // Callback status flags
   PyModule_AddIntConstant(m, "paInputUnderflow", paInputUnderflow);
   PyModule_AddIntConstant(m, "paInputOverflow", paInputOverflow);
   PyModule_AddIntConstant(m, "paOutputUnderflow", paOutputUnderflow);
   PyModule_AddIntConstant(m, "paOutputOverflow", paOutputOverflow);
   PyModule_AddIntConstant(m, "paPrimingOutput", paPrimingOutput);
 
-  /* misc */
+  // Misc
   PyModule_AddIntConstant(m, "paFramesPerBufferUnspecified",
                           paFramesPerBufferUnspecified);
 

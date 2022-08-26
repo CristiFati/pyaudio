@@ -163,7 +163,7 @@ PyTypeObject PyAudioDeviceInfoType = {
 // Public Device API functions
 
 // Creates and returns a PyAudioDeviceInfo (PyAudioDeviceInfoType).
-PyObject *pa_get_device_info(PyObject *self, PyObject *args) {
+PyObject *GetDeviceInfo(PyObject *self, PyObject *args) {
   PaDeviceIndex index;
   if (!PyArg_ParseTuple(args, "i", &index)) {
     return NULL;
@@ -176,13 +176,13 @@ PyObject *pa_get_device_info(PyObject *self, PyObject *args) {
     return NULL;
   }
 
-  PyAudioDeviceInfo *py_device_info = (PyAudioDeviceInfo *) PyObject_New(
+  PyAudioDeviceInfo *py_device_info = (PyAudioDeviceInfo *)PyObject_New(
       PyAudioDeviceInfo, &PyAudioDeviceInfoType);
   py_device_info->device_info = pa_device_info;
   return (PyObject *)py_device_info;
 }
 
-PyObject *pa_get_device_count(PyObject *self, PyObject *args) {
+PyObject *GetDeviceCount(PyObject *self, PyObject *args) {
   PaDeviceIndex count;
 
   if (!PyArg_ParseTuple(args, "")) {
@@ -205,7 +205,7 @@ PyObject *pa_get_device_count(PyObject *self, PyObject *args) {
   return PyLong_FromLong(count);
 }
 
-PyObject *pa_get_default_input_device(PyObject *self, PyObject *args) {
+PyObject *GetDefaultInputDevice(PyObject *self, PyObject *args) {
   PaDeviceIndex index;
 
   if (!PyArg_ParseTuple(args, "")) {
@@ -231,7 +231,7 @@ PyObject *pa_get_default_input_device(PyObject *self, PyObject *args) {
   return PyLong_FromLong(index);
 }
 
-PyObject *pa_get_default_output_device(PyObject *self, PyObject *args) {
+PyObject *GetDefaultOutputDevice(PyObject *self, PyObject *args) {
   PaDeviceIndex index;
 
   if (!PyArg_ParseTuple(args, "")) {

@@ -40,7 +40,7 @@ int is_stream_open(PyAudioStream *stream);
 
 // Public exported functions.
 
-PyObject *pa_get_stream_time(PyObject *self, PyObject *args);
-PyObject *pa_get_stream_cpu_load(PyObject *self, PyObject *args);
+PyObject *GetStreamTime(PyObject *self, PyObject *args);
+PyObject *GetStreamCpuLoad(PyObject *self, PyObject *args);
 
 #endif  // STREAM_H_

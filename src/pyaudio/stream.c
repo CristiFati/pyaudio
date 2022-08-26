@@ -161,7 +161,7 @@ void cleanup_stream(PyAudioStream *stream) {
   memset(&(stream->context), 0, sizeof(struct StreamContext));
 }
 
-PyObject *pa_get_stream_time(PyObject *self, PyObject *args) {
+PyObject *GetStreamTime(PyObject *self, PyObject *args) {
   double time;
 
   PyObject *stream_arg;
@@ -192,7 +192,7 @@ PyObject *pa_get_stream_time(PyObject *self, PyObject *args) {
   return PyFloat_FromDouble(time);
 }
 
-PyObject *pa_get_stream_cpu_load(PyObject *self, PyObject *args) {
+PyObject *GetStreamCpuLoad(PyObject *self, PyObject *args) {
   double cpuload;
 
   PyObject *stream_arg;

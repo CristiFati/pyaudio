@@ -6,9 +6,8 @@
 #endif
 #include "Python.h"
 
-PyObject *pa_get_version(PyObject *self, PyObject *args);
-PyObject *pa_get_version_text(PyObject *self, PyObject *args);
-PyObject *pa_get_sample_size(PyObject *self, PyObject *args);
-PyObject *pa_is_format_supported(PyObject *self, PyObject *args,
-                                 PyObject *kwargs);
+PyObject *GetVersion(PyObject *self, PyObject *args);
+PyObject *GetVersionText(PyObject *self, PyObject *args);
+PyObject *GetSampleSize(PyObject *self, PyObject *args);
+PyObject *IsFormatSupported(PyObject *self, PyObject *args, PyObject *kwargs);
 #endif  // MISC_H_

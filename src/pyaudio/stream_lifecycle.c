@@ -14,7 +14,7 @@
 
 #define DEFAULT_FRAMES_PER_BUFFER paFramesPerBufferUnspecified
 
-PyObject *pa_open(PyObject *self, PyObject *args, PyObject *kwargs) {
+PyObject *OpenStream(PyObject *self, PyObject *args, PyObject *kwargs) {
   int rate, channels;
   int input_device_index = -1;
   int output_device_index = -1;
@@ -256,7 +256,7 @@ PyObject *pa_open(PyObject *self, PyObject *args, PyObject *kwargs) {
   return (PyObject *)stream;
 }
 
-PyObject *pa_close(PyObject *self, PyObject *args) {
+PyObject *CloseStream(PyObject *self, PyObject *args) {
   PyObject *stream_arg;
   if (!PyArg_ParseTuple(args, "O!", &PyAudioStreamType, &stream_arg)) {
     return NULL;
@@ -274,7 +274,7 @@ PyObject *pa_close(PyObject *self, PyObject *args) {
  * Stream Start / Stop / Info
  *************************************************************/
 
-PyObject *pa_start_stream(PyObject *self, PyObject *args) {
+PyObject *StartStream(PyObject *self, PyObject *args) {
   int err;
   PyObject *stream_arg;
   if (!PyArg_ParseTuple(args, "O!", &PyAudioStreamType, &stream_arg)) {
@@ -294,8 +294,7 @@ PyObject *pa_start_stream(PyObject *self, PyObject *args) {
   Py_END_ALLOW_THREADS
   // clang-format on
 
-  if ((err != paNoError) &&
-      (err != paStreamIsNotStopped)) {
+  if ((err != paNoError) && (err != paStreamIsNotStopped)) {
     cleanup_stream(stream);
 
 #ifdef VERBOSE
@@ -313,7 +312,7 @@ PyObject *pa_start_stream(PyObject *self, PyObject *args) {
   return Py_None;
 }
 
-PyObject *pa_stop_stream(PyObject *self, PyObject *args) {
+PyObject *StopStream(PyObject *self, PyObject *args) {
   int err;
   PyObject *stream_arg;
   if (!PyArg_ParseTuple(args, "O!", &PyAudioStreamType, &stream_arg)) {
@@ -350,7 +349,7 @@ PyObject *pa_stop_stream(PyObject *self, PyObject *args) {
   return Py_None;
 }
 
-PyObject *pa_abort_stream(PyObject *self, PyObject *args) {
+PyObject *AbortStream(PyObject *self, PyObject *args) {
   int err;
   PyObject *stream_arg;
   if (!PyArg_ParseTuple(args, "O!", &PyAudioStreamType, &stream_arg)) {
@@ -387,7 +386,7 @@ PyObject *pa_abort_stream(PyObject *self, PyObject *args) {
   return Py_None;
 }
 
-PyObject *pa_is_stream_stopped(PyObject *self, PyObject *args) {
+PyObject *IsStreamStopped(PyObject *self, PyObject *args) {
   int err;
   PyObject *stream_arg;
   if (!PyArg_ParseTuple(args, "O!", &PyAudioStreamType, &stream_arg)) {
@@ -430,7 +429,7 @@ PyObject *pa_is_stream_stopped(PyObject *self, PyObject *args) {
   return Py_False;
 }
 
-PyObject *pa_is_stream_active(PyObject *self, PyObject *args) {
+PyObject *IsStreamActive(PyObject *self, PyObject *args) {
   int is_active;
   PyObject *stream_arg;
   if (!PyArg_ParseTuple(args, "O!", &PyAudioStreamType, &stream_arg)) {

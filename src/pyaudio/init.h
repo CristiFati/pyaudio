@@ -6,7 +6,7 @@
 #endif
 #include "Python.h"
 
-PyObject *pa_initialize(PyObject *self, PyObject *args);
-PyObject *pa_terminate(PyObject *self, PyObject *args);
+PyObject *Initialize(PyObject *self, PyObject *args);
+PyObject *Terminate(PyObject *self, PyObject *args);
 
 #endif  // INIT_H
