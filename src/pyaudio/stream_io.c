@@ -15,7 +15,6 @@ int stream_callback_cfunc(const void *input, void *output,
                           unsigned long frame_count,
                           const PaStreamCallbackTimeInfo *time_info,
                           PaStreamCallbackFlags status_flags, void *user_data) {
-  int return_val = paAbort;
   PyGILState_STATE _state = PyGILState_Ensure();
 
 #ifdef VERBOSE
@@ -39,11 +38,13 @@ int stream_callback_cfunc(const void *input, void *output,
   }
 #endif
 
+  int return_val = paAbort;
   PyAudioStream *stream = (PyAudioStream *)user_data;
   PyObject *py_callback = stream->context.callback;
   unsigned int bytes_per_frame = stream->context.frame_size;
   long main_thread_id = stream->context.main_thread_id;
 
+  // Prepare arguments for calling the python callback:
   PyObject *py_frame_count = PyLong_FromUnsignedLong(frame_count);
   // clang-format off
   PyObject *py_time_info = Py_BuildValue("{s:d,s:d,s:d}",
@@ -55,27 +56,25 @@ int stream_callback_cfunc(const void *input, void *output,
                                          time_info->outputBufferDacTime);
   // clang-format on
   PyObject *py_status_flags = PyLong_FromUnsignedLong(status_flags);
-  PyObject *py_input_data = Py_None;
-  const char *pData;
-  Py_ssize_t output_len;
-  PyObject *py_result;
-
-  if (input) {
-    py_input_data =
+  PyObject *py_input_samples;
+  if (input != NULL) {
+    py_input_samples =
         PyBytes_FromStringAndSize(input, bytes_per_frame * frame_count);
+  } else {
+    // Output stream, so provide None to the callback.
+    Py_INCREF(Py_None);
+    py_input_samples = Py_None;
   }
 
-  py_result =
-      PyObject_CallFunctionObjArgs(py_callback, py_input_data, py_frame_count,
-                                   py_time_info, py_status_flags, NULL);
-
-  if (py_result == NULL) {
+  PyObject *callback_result = PyObject_CallFunctionObjArgs(
+      py_callback, py_input_samples, py_frame_count, py_time_info,
+      py_status_flags, NULL);
+  if (callback_result == NULL) {
 #ifdef VERBOSE
     fprintf(stderr, "An error occured while using the portaudio stream\n");
     fprintf(stderr, "Error message: Could not call callback function\n");
 #endif
     PyObject *err = PyErr_Occurred();
-
     if (err) {
       PyThreadState_SetAsyncExc(main_thread_id, err);
       // Print out a stack trace to help debugging.
@@ -83,14 +82,18 @@ int stream_callback_cfunc(const void *input, void *output,
       // the amount of logging.
       PyErr_Print();
     }
-
     goto end;
   }
 
+  // Parse the callback's response, which should be the samples to playback (if
+  // output stream; ignored otherwise) and the desired next stream state
+  // (paContinue, pAbort, or paComplete):
+  const char *samples_for_output;
+  Py_ssize_t output_len;
   // clang-format off
-  if (!PyArg_ParseTuple(py_result,
+  if (!PyArg_ParseTuple(callback_result,
                         "z#i",
-                        &pData,
+                        &samples_for_output,
                         &output_len,
                         &return_val)) {
 // clang-format on
@@ -98,9 +101,7 @@ int stream_callback_cfunc(const void *input, void *output,
     fprintf(stderr, "An error occured while using the portaudio stream\n");
     fprintf(stderr, "Error message: Could not parse callback return value\n");
 #endif
-
     PyObject *err = PyErr_Occurred();
-
     if (err) {
       PyThreadState_SetAsyncExc(main_thread_id, err);
       // Print out a stack trace to help debugging.
@@ -109,8 +110,8 @@ int stream_callback_cfunc(const void *input, void *output,
       PyErr_Print();
     }
 
-    Py_XDECREF(py_result);
-    return_val = paAbort;
+    Py_XDECREF(callback_result);
+    return_val = paAbort;  // Quit the callback loop
     goto end;
   }
 
@@ -121,9 +122,8 @@ int stream_callback_cfunc(const void *input, void *output,
     PyThreadState_SetAsyncExc(main_thread_id, PyErr_Occurred());
     PyErr_Print();
 
-    // Quit the callback loop
-    Py_DECREF(py_result);
-    return_val = paAbort;
+    Py_XDECREF(callback_result);
+    return_val = paAbort;  // Quit the callback loop
     goto end;
   }
 
@@ -131,32 +131,29 @@ int stream_callback_cfunc(const void *input, void *output,
   if (output) {
     char *output_data = (char *)output;
     size_t pa_max_num_bytes = bytes_per_frame * frame_count;
-    // Though PyArg_ParseTuple returns the size of pData in output_len, a signed
-    // Py_ssize_t, that value should never be negative.
+    // Though PyArg_ParseTuple returns the size of samples_for_output in
+    // output_len, a signed Py_ssize_t, that value should never be negative.
     assert(output_len >= 0);
     // Only copy min(output_len, pa_max_num_bytes) bytes.
     size_t bytes_to_copy = (size_t)output_len < pa_max_num_bytes
                                ? (size_t)output_len
                                : pa_max_num_bytes;
-    if (pData != NULL && bytes_to_copy > 0) {
-      memcpy(output_data, pData, bytes_to_copy);
+    if (samples_for_output != NULL && bytes_to_copy > 0) {
+      memcpy(output_data, samples_for_output, bytes_to_copy);
     }
-    // Pad out the rest of the buffer with 0s if callback returned
-    // too few frames (and assume paComplete).
+    // If callback returned too few frames, pad out the rest of the buffer with
+    // 0s and assume the stream is done (paComplete).
     if (bytes_to_copy < pa_max_num_bytes) {
       memset(output_data + bytes_to_copy, 0, pa_max_num_bytes - bytes_to_copy);
       return_val = paComplete;
     }
   }
-  Py_DECREF(py_result);
+  Py_DECREF(callback_result);
 
 end:
-  if (input) {
-    // Decrement this at the end, after memcpy, in case the user
-    // returns py_input_data back for playback.
-    Py_DECREF(py_input_data);
-  }
-
+  // Decrement py_input_samples at the end, after the memcpy above, in case the
+  // user returns py_input_samples (from the callback) for playback.
+  Py_XDECREF(py_input_samples);
   Py_XDECREF(py_frame_count);
   Py_XDECREF(py_time_info);
   Py_XDECREF(py_status_flags);
