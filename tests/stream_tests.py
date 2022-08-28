@@ -41,6 +41,7 @@ class StreamTests(unittest.TestCase):
         self.assertGreaterEqual(out_stream.get_input_latency(), 0)
         self.assertGreaterEqual(out_stream.get_time(), 0)
         self.assertGreaterEqual(out_stream.get_cpu_load(), 0)
+        self.assertGreaterEqual(out_stream.get_write_available(), 0)
 
         out_stream.stop_stream()
 
@@ -61,6 +62,7 @@ class StreamTests(unittest.TestCase):
         self.assertGreaterEqual(out_stream.get_input_latency(), 0)
         self.assertGreaterEqual(out_stream.get_time(), 0)
         self.assertGreaterEqual(out_stream.get_cpu_load(), 0)
+        self.assertGreaterEqual(out_stream.get_write_available(), 0)
 
         out_stream.close()
 
@@ -74,6 +76,8 @@ class StreamTests(unittest.TestCase):
             out_stream.get_time()
         with self.assertRaises(IOError):
             out_stream.get_cpu_load()
+        with self.assertRaises(IOError):
+            out_stream.get_write_available()
 
     @unittest.skipIf(SKIP_HW_TESTS, 'Hardware device required.')
     def test_input_start_stop_stream_properties(self):
@@ -89,6 +93,7 @@ class StreamTests(unittest.TestCase):
         self.assertGreaterEqual(in_stream.get_input_latency(), 0)
         self.assertGreaterEqual(in_stream.get_time(), 0)
         self.assertGreaterEqual(in_stream.get_cpu_load(), 0)
+        self.assertGreaterEqual(in_stream.get_read_available(), 0)
 
         in_stream.stop_stream()
 
@@ -109,6 +114,7 @@ class StreamTests(unittest.TestCase):
         self.assertGreater(in_stream.get_input_latency(), 0)
         self.assertGreaterEqual(in_stream.get_time(), 0)
         self.assertGreaterEqual(in_stream.get_cpu_load(), 0)
+        self.assertGreaterEqual(in_stream.get_read_available(), 0)
 
         in_stream.close()
 
@@ -122,6 +128,39 @@ class StreamTests(unittest.TestCase):
             in_stream.get_time()
         with self.assertRaises(IOError):
             in_stream.get_cpu_load()
+        with self.assertRaises(IOError):
+            in_stream.get_read_available()
+
+    @unittest.skipIf(SKIP_HW_TESTS, 'Hardware device required.')
+    def test_output_blocking(self):
+        out_stream = self.p.open(
+            format=self.p.get_format_from_width(2),
+            channels=2,
+            rate=44100,
+            output=True)
+        out_stream.write(b'\0' * 512)
+
+        with self.assertRaises(IOError):
+            out_stream.read(512)
+
+        out_stream.close()
+
+    @unittest.skipIf(SKIP_HW_TESTS, 'Hardware device required.')
+    def test_input_blocking(self):
+        width = 2
+        channels = 2
+        in_stream = self.p.open(
+            format=self.p.get_format_from_width(width),
+            channels=channels,
+            rate=44100,
+            input=True)
+        samples = in_stream.read(512)
+
+        with self.assertRaises(IOError):
+            in_stream.write(b'\0' * 512)
+
+        in_stream.close()
+        self.assertEqual(len(samples), 512 * width * channels)
 
     @unittest.skipIf(SKIP_HW_TESTS, 'Sound hardware required.')
     def test_return_none_callback(self):
@@ -441,7 +480,7 @@ class StreamTests(unittest.TestCase):
             frames_per_buffer=frames_per_chunk,
             input_device_index=self.input_device,
             stream_callback=in_callback)
-        out_stream = self.p.open(
+        out_stream = self.p.open(  # Blocking mode
             format=self.p.get_format_from_width(width),
             channels=channels,
             rate=rate,
@@ -462,7 +501,7 @@ class StreamTests(unittest.TestCase):
         # holding the GIL), while the in_callback thread will be
         # waiting for the GIL once time.sleep completes (while holding
         # the device lock), leading to deadlock.
-        self.assertGreater(out_stream.get_write_available(), -1)
+        self.assertGreaterEqual(out_stream.get_write_available(), 0)
 
         time.sleep(1)
         in_stream.stop_stream()
@@ -480,7 +519,7 @@ class StreamTests(unittest.TestCase):
             time.sleep(1)
             return (None, pyaudio.paComplete)
 
-        in_stream = self.p.open(
+        in_stream = self.p.open(  # Blocking mode
             format=self.p.get_format_from_width(width),
             channels=channels,
             rate=rate,
@@ -510,7 +549,7 @@ class StreamTests(unittest.TestCase):
         # holding the GIL), while the in_callback thread will be
         # waiting for the GIL once time.sleep completes (while holding
         # the device lock), leading to deadlock.
-        self.assertGreater(in_stream.get_read_available(), -1)
+        self.assertGreaterEqual(in_stream.get_read_available(), 0)
 
         time.sleep(1)
         in_stream.stop_stream()
