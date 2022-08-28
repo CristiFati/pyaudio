@@ -49,8 +49,8 @@ static PyMethodDef exported_functions[] = {
     {"get_sample_size", GetSampleSize, METH_VARARGS,
      "Returns sample size of a format in bytes"},
 
-    {"is_format_supported", IsFormatSupported, METH_VARARGS | METH_KEYWORDS,
-     "Returns whether format is supported"},
+    {"is_format_supported", (PyCFunction)IsFormatSupported,
+     METH_VARARGS | METH_KEYWORDS, "Returns whether format is supported"},
 
     {"get_version", GetVersion, METH_VARARGS, "PortAudio version"},
 
@@ -97,7 +97,7 @@ static PyMethodDef exported_functions[] = {
      "Returns the stream's CPU load (always 0 for blocking mode)"},
 
     // stream_lifecycle.h (and stream.h)
-    {"open", OpenStream, METH_VARARGS | METH_KEYWORDS,
+    {"open", (PyCFunction)OpenStream, METH_VARARGS | METH_KEYWORDS,
      "Opens a PortAudio stream"},
 
     {"close", CloseStream, METH_VARARGS, "Closes a PortAudio stream"},
