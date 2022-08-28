@@ -27,6 +27,193 @@ class StreamTests(unittest.TestCase):
     def tearDown(self):
         self.p.terminate()
 
+    @unittest.skipIf(SKIP_HW_TESTS, 'Hardware device required.')
+    def test_output_start_stop_stream_properties(self):
+        out_stream = self.p.open(
+            format=self.p.get_format_from_width(2),
+            channels=2,
+            rate=44100,
+            output=True)
+
+        self.assertTrue(out_stream.is_active())
+        self.assertFalse(out_stream.is_stopped())
+        self.assertGreaterEqual(out_stream.get_output_latency(), 0)
+        self.assertGreaterEqual(out_stream.get_input_latency(), 0)
+        self.assertGreaterEqual(out_stream.get_time(), 0)
+        self.assertGreaterEqual(out_stream.get_cpu_load(), 0)
+
+        out_stream.stop_stream()
+
+        self.assertTrue(out_stream.is_stopped())
+        self.assertFalse(out_stream.is_active())
+        # Make sure we can still read PaStreamInfo, as stream is not closed yet.
+        self.assertGreater(out_stream.get_output_latency(), 0)
+        self.assertGreaterEqual(out_stream.get_input_latency(), 0)
+        self.assertGreaterEqual(out_stream.get_time(), 0)
+        self.assertGreaterEqual(out_stream.get_cpu_load(), 0)
+
+        out_stream.start_stream()
+
+        self.assertFalse(out_stream.is_stopped())
+        self.assertTrue(out_stream.is_active())
+        # Make sure we can still read PaStreamInfo, as stream is not closed yet.
+        self.assertGreater(out_stream.get_output_latency(), 0)
+        self.assertGreaterEqual(out_stream.get_input_latency(), 0)
+        self.assertGreaterEqual(out_stream.get_time(), 0)
+        self.assertGreaterEqual(out_stream.get_cpu_load(), 0)
+
+        out_stream.close()
+
+        with self.assertRaises(IOError):
+            self.assertTrue(out_stream.is_stopped())
+        with self.assertRaises(IOError):
+            self.assertFalse(out_stream.is_active())
+        with self.assertRaises(IOError):
+            out_stream.get_output_latency()
+        with self.assertRaises(IOError):
+            out_stream.get_time()
+        with self.assertRaises(IOError):
+            out_stream.get_cpu_load()
+
+    @unittest.skipIf(SKIP_HW_TESTS, 'Hardware device required.')
+    def test_input_start_stop_stream_properties(self):
+        in_stream = self.p.open(
+            format=self.p.get_format_from_width(2),
+            channels=2,
+            rate=44100,
+            input=True)
+
+        self.assertTrue(in_stream.is_active())
+        self.assertFalse(in_stream.is_stopped())
+        self.assertGreaterEqual(in_stream.get_output_latency(), 0)
+        self.assertGreaterEqual(in_stream.get_input_latency(), 0)
+        self.assertGreaterEqual(in_stream.get_time(), 0)
+        self.assertGreaterEqual(in_stream.get_cpu_load(), 0)
+
+        in_stream.stop_stream()
+
+        self.assertTrue(in_stream.is_stopped())
+        self.assertFalse(in_stream.is_active())
+        # Make sure we can still read PaStreamInfo, as stream is not closed yet.
+        self.assertGreaterEqual(in_stream.get_output_latency(), 0)
+        self.assertGreater(in_stream.get_input_latency(), 0)
+        self.assertGreaterEqual(in_stream.get_time(), 0)
+        self.assertGreaterEqual(in_stream.get_cpu_load(), 0)
+
+        in_stream.start_stream()
+
+        self.assertFalse(in_stream.is_stopped())
+        self.assertTrue(in_stream.is_active())
+        # Make sure we can still read PaStreamInfo, as stream is not closed yet.
+        self.assertGreaterEqual(in_stream.get_output_latency(), 0)
+        self.assertGreater(in_stream.get_input_latency(), 0)
+        self.assertGreaterEqual(in_stream.get_time(), 0)
+        self.assertGreaterEqual(in_stream.get_cpu_load(), 0)
+
+        in_stream.close()
+
+        with self.assertRaises(IOError):
+            self.assertTrue(in_stream.is_stopped())
+        with self.assertRaises(IOError):
+            self.assertFalse(in_stream.is_active())
+        with self.assertRaises(IOError):
+            in_stream.get_output_latency()
+        with self.assertRaises(IOError):
+            in_stream.get_time()
+        with self.assertRaises(IOError):
+            in_stream.get_cpu_load()
+
+    @unittest.skipIf(SKIP_HW_TESTS, 'Sound hardware required.')
+    def test_return_none_callback(self):
+        """Ensure that return None ends the stream."""
+        num_times_called = 0
+
+        def out_callback(_, frame_count, time_info, status):
+            nonlocal num_times_called
+            num_times_called += 1
+            return (None, pyaudio.paContinue)
+
+        out_stream = self.p.open(
+            format=self.p.get_format_from_width(2),
+            channels=2,
+            rate=44100,
+            output=True,
+            output_device_index=self.output_device,
+            stream_callback=out_callback)
+        out_stream.start_stream()
+        time.sleep(0.5)
+        out_stream.stop_stream()
+        self.assertEqual(num_times_called, 1)
+
+    @unittest.skipIf(SKIP_HW_TESTS, 'Sound hardware required.')
+    def test_excess_output_callback(self):
+        """Ensure that returning more bytes than allowed does not fail."""
+        num_times_called = 0
+        width = 2
+        channels = 2
+        bytes_per_frame = width * channels
+
+        def out_callback(_, frame_count, time_info, status):
+            nonlocal num_times_called
+            num_times_called += 1
+            # Make sure this is called twice, so we know that the first time
+            # didn't crash (at least).
+            result = (pyaudio.paComplete
+                      if num_times_called == 2 else pyaudio.paContinue)
+            max_allowed_bytes = frame_count * bytes_per_frame
+            return (b'\1' * (max_allowed_bytes * 2), result)
+
+        out_stream = self.p.open(
+            format=self.p.get_format_from_width(width),
+            channels=channels,
+            rate=44100,
+            output=True,
+            output_device_index=self.output_device,
+            stream_callback=out_callback)
+        out_stream.start_stream()
+        time.sleep(0.5)
+        out_stream.stop_stream()
+        self.assertEqual(num_times_called, 2)
+
+    @unittest.skipIf('darwin' not in sys.platform, 'macOS-only test.')
+    def test_macos_channel_map(self):
+        # reverse: R-L stereo
+        channel_map = (1, 0)
+        stream_info = pyaudio.PaMacCoreStreamInfo(
+            flags=pyaudio.PaMacCoreStreamInfo.paMacCorePlayNice, # default
+            channel_map=channel_map)
+
+        self.assertEqual(stream_info.get_flags(),
+                         pyaudio.PaMacCoreStreamInfo.paMacCorePlayNice)
+        self.assertEqual(stream_info.get_channel_map(), channel_map)
+
+        stream = self.p.open(
+            format=self.p.get_format_from_width(2),
+            channels=2,
+            rate=44100,
+            output=True,
+            output_host_api_specific_stream_info=stream_info,
+            start=False)
+
+        # Make sure portaudio no longer depends on state inside this object
+        # once the stream is initialized.
+        del stream_info
+
+        self.assertFalse(stream.is_active())
+        self.assertTrue(stream.is_stopped())
+
+        stream.start_stream()
+
+        self.assertTrue(stream.is_active())
+        self.assertFalse(stream.is_stopped())
+
+        stream.stop_stream()
+
+        self.assertFalse(stream.is_active())
+        self.assertTrue(stream.is_stopped())
+
+        stream.close()
+
     @unittest.skipIf(SKIP_HW_TESTS, 'Sound hardware required.')
     def test_device_lock_gil_order(self):
         """Ensure no deadlock between Pa_{Open,Start,Stop}Stream and GIL."""
@@ -376,142 +563,3 @@ class StreamTests(unittest.TestCase):
         event.wait()
         time.sleep(0.1)
         self.p.terminate()
-
-    @unittest.skipIf(SKIP_HW_TESTS, 'Sound hardware required.')
-    def test_return_none_callback(self):
-        """Ensure that return None ends the stream."""
-        num_times_called = 0
-
-        def out_callback(_, frame_count, time_info, status):
-            nonlocal num_times_called
-            num_times_called += 1
-            return (None, pyaudio.paContinue)
-
-        out_stream = self.p.open(
-            format=self.p.get_format_from_width(2),
-            channels=2,
-            rate=44100,
-            output=True,
-            output_device_index=self.output_device,
-            stream_callback=out_callback)
-        out_stream.start_stream()
-        time.sleep(0.5)
-        out_stream.stop_stream()
-        self.assertEqual(num_times_called, 1)
-
-    @unittest.skipIf(SKIP_HW_TESTS, 'Sound hardware required.')
-    def test_excess_output_callback(self):
-        """Ensure that returning more bytes than allowed does not fail."""
-        num_times_called = 0
-        width = 2
-        channels = 2
-        bytes_per_frame = width * channels
-
-        def out_callback(_, frame_count, time_info, status):
-            nonlocal num_times_called
-            num_times_called += 1
-            # Make sure this is called twice, so we know that the first time
-            # didn't crash (at least).
-            result = (pyaudio.paComplete
-                      if num_times_called == 2 else pyaudio.paContinue)
-            max_allowed_bytes = frame_count * bytes_per_frame
-            return (b'\1' * (max_allowed_bytes * 2), result)
-
-        out_stream = self.p.open(
-            format=self.p.get_format_from_width(width),
-            channels=channels,
-            rate=44100,
-            output=True,
-            output_device_index=self.output_device,
-            stream_callback=out_callback)
-        out_stream.start_stream()
-        time.sleep(0.5)
-        out_stream.stop_stream()
-        self.assertEqual(num_times_called, 2)
-
-    @unittest.skipIf(SKIP_HW_TESTS, 'Hardware device required.')
-    def test_start_stop_stream_properties(self):
-        out_stream = self.p.open(
-            format=self.p.get_format_from_width(2),
-            channels=2,
-            rate=44100,
-            output=True)
-
-        self.assertTrue(out_stream.is_active())
-        self.assertFalse(out_stream.is_stopped())
-        self.assertGreaterEqual(out_stream.get_output_latency(), 0)
-        self.assertGreaterEqual(out_stream.get_input_latency(), 0)
-        self.assertGreaterEqual(out_stream.get_time(), 0)
-        self.assertGreaterEqual(out_stream.get_cpu_load(), 0)
-
-        out_stream.stop_stream()
-
-        self.assertTrue(out_stream.is_stopped())
-        self.assertFalse(out_stream.is_active())
-        # Make sure we can still read PaStreamInfo, as stream is not closed yet.
-        self.assertGreater(out_stream.get_output_latency(), 0)
-        self.assertGreaterEqual(out_stream.get_input_latency(), 0)
-        self.assertGreaterEqual(out_stream.get_time(), 0)
-        self.assertGreaterEqual(out_stream.get_cpu_load(), 0)
-
-        out_stream.start_stream()
-
-        self.assertFalse(out_stream.is_stopped())
-        self.assertTrue(out_stream.is_active())
-        # Make sure we can still read PaStreamInfo, as stream is not closed yet.
-        self.assertGreater(out_stream.get_output_latency(), 0)
-        self.assertGreaterEqual(out_stream.get_input_latency(), 0)
-        self.assertGreaterEqual(out_stream.get_time(), 0)
-        self.assertGreaterEqual(out_stream.get_cpu_load(), 0)
-
-        out_stream.close()
-
-        with self.assertRaises(IOError):
-            self.assertTrue(out_stream.is_stopped())
-        with self.assertRaises(IOError):
-            self.assertFalse(out_stream.is_active())
-        with self.assertRaises(IOError):
-            out_stream.get_output_latency()
-        with self.assertRaises(IOError):
-            out_stream.get_time()
-        with self.assertRaises(IOError):
-            out_stream.get_cpu_load()
-
-    @unittest.skipIf('darwin' not in sys.platform, 'macOS-only test.')
-    def test_macos_channel_map(self):
-        # reverse: R-L stereo
-        channel_map = (1, 0)
-        stream_info = pyaudio.PaMacCoreStreamInfo(
-            flags=pyaudio.PaMacCoreStreamInfo.paMacCorePlayNice, # default
-            channel_map=channel_map)
-
-        self.assertEqual(stream_info.get_flags(),
-                         pyaudio.PaMacCoreStreamInfo.paMacCorePlayNice)
-        self.assertEqual(stream_info.get_channel_map(), channel_map)
-
-        stream = self.p.open(
-            format=self.p.get_format_from_width(2),
-            channels=2,
-            rate=44100,
-            output=True,
-            output_host_api_specific_stream_info=stream_info,
-            start=False)
-
-        # Make sure portaudio no longer depends on state inside this object
-        # once the stream is initialized.
-        del stream_info
-
-        self.assertFalse(stream.is_active())
-        self.assertTrue(stream.is_stopped())
-
-        stream.start_stream()
-
-        self.assertTrue(stream.is_active())
-        self.assertFalse(stream.is_stopped())
-
-        stream.stop_stream()
-
-        self.assertFalse(stream.is_active())
-        self.assertTrue(stream.is_stopped())
-
-        stream.close()
