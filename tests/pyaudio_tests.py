@@ -33,7 +33,8 @@ ENABLE_LOOPBACK_TESTS = 'PYAUDIO_ENABLE_LOOPBACK_TESTS' in os.environ
 
 DUMP_CAPTURE=False
 
-class PyAudioTests(unittest.TestCase):
+
+class StreamTests(unittest.TestCase):
     def setUp(self):
         self.p = pyaudio.PyAudio()
         self.loopback_input_idx = None
@@ -41,7 +42,7 @@ class PyAudioTests(unittest.TestCase):
 
         if ENABLE_LOOPBACK_TESTS:
             (self.loopback_input_idx,
-             self.loopback_output_idx) = self.get_audio_loopback()
+             self.loopback_output_idx) = self._get_audio_loopback()
             self.assertTrue(
                 self.loopback_input_idx is None
                 or self.loopback_input_idx >= 0, "No loopback device found")
@@ -52,12 +53,12 @@ class PyAudioTests(unittest.TestCase):
     def tearDown(self):
         self.p.terminate()
 
-    def get_audio_loopback(self):
+    def _get_audio_loopback(self):
         if sys.platform == 'darwin':
-            return self._find_audio_loopback(
+            return self._find_audio_device(
                 'Soundflower (2ch)', 'Soundflower (2ch)')
         if sys.platform in ('linux', 'linux2'):
-            return self._find_audio_loopback(
+            return self._find_audio_device(
                 'Loopback: PCM (hw:1,0)', 'Loopback: PCM (hw:1,1)')
         if sys.platform == 'win32':
             # Assumes running in a VM, in which the hypervisor can
@@ -67,7 +68,7 @@ class PyAudioTests(unittest.TestCase):
 
         return -1, -1
 
-    def _find_audio_loopback(self, indev, outdev):
+    def _find_audio_device(self, indev, outdev):
         """Utility to find audio loopback device."""
         input_idx, output_idx = -1, -1
         for device_idx in range(self.p.get_device_count()):
@@ -84,14 +85,6 @@ class PyAudioTests(unittest.TestCase):
                 break
 
         return input_idx, output_idx
-
-    @unittest.skipIf(SKIP_HW_TESTS, 'Loopback device required.')
-    def test_system_info(self):
-        """Basic system info tests"""
-        self.assertTrue(self.p.get_host_api_count() > 0)
-        self.assertTrue(self.p.get_device_count() > 0)
-        api_info = self.p.get_host_api_info_by_index(0)
-        self.assertTrue(len(api_info.items()) > 0)
 
     @unittest.skipIf(SKIP_HW_TESTS or not ENABLE_LOOPBACK_TESTS,
                      'Loopback device required.')
