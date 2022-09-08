@@ -31,7 +31,7 @@ Overview
 --------
 
 **Classes**
-  :py:class:`PyAudio`, :py:class:`Stream`
+  :py:class:`PyAudio`, :py:class:`PyAudio.Stream`
 
 .. only:: pamac
 
@@ -105,6 +105,7 @@ __version__ = "0.2.12"
 __docformat__ = "restructuredtext en"
 
 import locale
+import warnings
 
 try:
     import pyaudio._portaudio as pa
@@ -248,315 +249,6 @@ def get_portaudio_version_text():
     return pa.get_version_text()
 
 
-# Note: See PyAudio class below for main export.
-
-class Stream:
-    """PortAudio Stream Wrapper. Use :py:func:`PyAudio.open` to instantiate.
-
-    **Opening and Closing**
-      :py:func:`__init__`, :py:func:`close`
-
-    **Stream Info**
-      :py:func:`get_input_latency`, :py:func:`get_output_latency`,
-      :py:func:`get_time`, :py:func:`get_cpu_load`
-
-    **Stream Management**
-      :py:func:`start_stream`, :py:func:`stop_stream`, :py:func:`is_active`,
-      :py:func:`is_stopped`
-
-    **Input Output**
-      :py:func:`write`, :py:func:`read`, :py:func:`get_read_available`,
-      :py:func:`get_write_available`
-    """
-    def __init__(self,
-                 PA_manager,
-                 rate,
-                 channels,
-                 format,
-                 input=False,
-                 output=False,
-                 input_device_index=None,
-                 output_device_index=None,
-                 frames_per_buffer=pa.paFramesPerBufferUnspecified,
-                 start=True,
-                 input_host_api_specific_stream_info=None,
-                 output_host_api_specific_stream_info=None,
-                 stream_callback=None):
-        """Initialize an audio stream.
-
-        Do not call directly. Use :py:func:`PyAudio.open`.
-
-        A stream can either be input, output, or both.
-
-        :param PA_manager: A reference to the managing :py:class:`PyAudio`
-            instance
-        :param rate: Sampling rate
-        :param channels: Number of channels
-        :param format: Sampling size and format. See |PaSampleFormat|.
-        :param input: Specifies whether this is an input stream.
-            Defaults to ``False``.
-        :param output: Specifies whether this is an output stream.
-            Defaults to ``False``.
-        :param input_device_index: Index of Input Device to use.
-            Unspecified (or ``None``) uses default device.
-            Ignored if `input` is ``False``.
-        :param output_device_index:
-            Index of Output Device to use.
-            Unspecified (or ``None``) uses the default device.
-            Ignored if `output` is ``False``.
-        :param frames_per_buffer: Specifies the number of frames per buffer.
-        :param start: Start the stream running immediately.
-            Defaults to ``True``. In general, there is no reason to set
-            this to ``False``.
-        :param input_host_api_specific_stream_info: Specifies a host API
-            specific stream information data structure for input.
-
-            .. only:: pamac
-
-               See :py:class:`PaMacCoreStreamInfo`.
-
-        :param output_host_api_specific_stream_info: Specifies a host API
-            specific stream information data structure for output.
-
-            .. only:: pamac
-
-               See :py:class:`PaMacCoreStreamInfo`.
-
-        :param stream_callback: Specifies a callback function for
-            *non-blocking* (callback) operation.  Default is
-            ``None``, which indicates *blocking* operation (i.e.,
-            :py:func:`Stream.read` and :py:func:`Stream.write`).  To use
-            non-blocking operation, specify a callback that conforms
-            to the following signature:
-
-            .. code-block:: python
-
-               callback(in_data,      # recorded data if input=True; else None
-                        frame_count,  # number of frames
-                        time_info,    # dictionary
-                        status_flags) # PaCallbackFlags
-
-            ``time_info`` is a dictionary with the following keys:
-            ``input_buffer_adc_time``, ``current_time``, and
-            ``output_buffer_dac_time``; see the PortAudio
-            documentation for their meanings.  ``status_flags`` is one
-            of |PaCallbackFlags|.
-
-            The callback must return a tuple:
-
-            .. code-block:: python
-
-                (out_data, flag)
-
-            ``out_data`` is a byte array whose length should be the
-            (``frame_count * channels * bytes-per-channel``) if
-            ``output=True`` or ``None`` if ``output=False``.  ``flag``
-            must be either :py:data:`paContinue`, :py:data:`paComplete` or
-            :py:data:`paAbort` (one of |PaCallbackReturnCodes|).
-            When ``output=True`` and ``out_data`` does not contain at
-            least ``frame_count`` frames, :py:data:`paComplete` is
-            assumed for ``flag``.
-
-            **Note:** ``stream_callback`` is called in a separate
-            thread (from the main thread).  Exceptions that occur in
-            the ``stream_callback`` will:
-
-            1. print a traceback on standard error to aid debugging,
-            2. queue the exception to be thrown (at some point) in
-               the main thread, and
-            3. return `paAbort` to PortAudio to stop the stream.
-
-            **Note:** Do not call :py:func:`Stream.read` or
-            :py:func:`Stream.write` if using non-blocking operation.
-
-            **See:** PortAudio's callback signature for additional
-            details: http://portaudio.com/docs/v19-doxydocs/portaudio_8h.html#a8a60fb2a5ec9cbade3f54a9c978e2710
-
-        :raise ValueError: Neither input nor output are set True.
-        """
-        if not (input or output):
-            raise ValueError("Must specify an input or output " + "stream.")
-
-        self._parent = PA_manager
-        self._is_input = input
-        self._is_output = output
-        self._is_running = start
-        self._rate = rate
-        self._channels = channels
-        self._format = format
-        self._frames_per_buffer = frames_per_buffer
-
-        arguments = {
-            'rate' : rate,
-            'channels' : channels,
-            'format' : format,
-            'input' : input,
-            'output' : output,
-            'input_device_index' : input_device_index,
-            'output_device_index' : output_device_index,
-            'frames_per_buffer' : frames_per_buffer}
-
-        if input_host_api_specific_stream_info:
-            _l = input_host_api_specific_stream_info
-            arguments[
-                'input_host_api_specific_stream_info'
-                ] = _l._get_host_api_stream_object()
-
-        if output_host_api_specific_stream_info:
-            _l = output_host_api_specific_stream_info
-            arguments[
-                'output_host_api_specific_stream_info'
-                ] = _l._get_host_api_stream_object()
-
-        if stream_callback:
-            arguments['stream_callback'] = stream_callback
-
-        # calling pa.open returns a stream object
-        self._stream = pa.open(**arguments)
-
-        self._input_latency = self._stream.inputLatency
-        self._output_latency = self._stream.outputLatency
-
-        if self._is_running:
-            pa.start_stream(self._stream)
-
-    def close(self):
-        """Closes the stream."""
-        pa.close(self._stream)
-        self._is_running = False
-        self._parent._remove_stream(self)
-
-    # Stream Info
-
-    def get_input_latency(self):
-        """Returns the input latency.
-
-        :rtype: float
-        """
-        return self._stream.inputLatency
-
-    def get_output_latency(self):
-        """Returns the output latency.
-
-        :rtype: float
-        """
-        return self._stream.outputLatency
-
-    def get_time(self):
-        """Returns stream time.
-
-        :rtype: float
-        """
-        return pa.get_stream_time(self._stream)
-
-    def get_cpu_load(self):
-        """Return the CPU load. Always 0.0 when using the blocking API.
-
-        :rtype: float
-        """
-        return pa.get_stream_cpu_load(self._stream)
-
-    # Stream Lifecycle
-
-    def start_stream(self):
-        """Starts the stream."""
-        if self._is_running:
-            return
-
-        pa.start_stream(self._stream)
-        self._is_running = True
-
-    def stop_stream(self):
-        """Stops the stream."""
-        if not self._is_running:
-            return
-
-        pa.stop_stream(self._stream)
-        self._is_running = False
-
-    def is_active(self):
-        """Returns whether the stream is active.
-
-        :rtype: bool
-        """
-        return pa.is_stream_active(self._stream)
-
-    def is_stopped(self):
-        """Returns whether the stream is stopped.
-
-        :rtype: bool
-        """
-        return pa.is_stream_stopped(self._stream)
-
-    # Stream blocking I/O
-
-    def write(self, frames, num_frames=None, exception_on_underflow=False):
-        """Write samples to the stream for playback.
-
-        Do not call when using non-blocking mode.
-
-        :param frames:
-           The frames of data.
-        :param num_frames:
-           The number of frames to write.
-           Defaults to None, in which this value will be
-           automatically computed.
-        :param exception_on_underflow:
-           Specifies whether an IOError exception should be thrown
-           (or silently ignored) on buffer underflow. Defaults
-           to False for improved performance, especially on
-           slower platforms.
-
-        :raises IOError: if the stream is not an output stream
-           or if the write operation was unsuccessful.
-
-        :rtype: `None`
-        """
-        if not self._is_output:
-            raise IOError("Not output stream", paCanNotWriteToAnInputOnlyStream)
-
-        if num_frames == None:
-            # Determine how many frames to read:
-            width = get_sample_size(self._format)
-            num_frames = int(len(frames) / (self._channels * width))
-
-        pa.write_stream(self._stream, frames, num_frames,
-                        exception_on_underflow)
-
-    def read(self, num_frames, exception_on_overflow=True):
-        """Read samples from the stream.
-
-        Do not call when using non-blocking mode.
-
-        :param num_frames: The number of frames to read.
-        :param exception_on_overflow:
-           Specifies whether an IOError exception should be thrown
-           (or silently ignored) on input buffer overflow. Defaults
-           to True.
-        :raises IOError: if stream is not an input stream
-          or if the read operation was unsuccessful.
-        :rtype: bytes
-        """
-        if not self._is_input:
-            raise IOError("Not input stream",
-                          paCanNotReadFromAnOutputOnlyStream)
-        return pa.read_stream(self._stream, num_frames, exception_on_overflow)
-
-    def get_read_available(self):
-        """Return the number of frames that can be read without waiting.
-
-        :rtype: integer
-        """
-        return pa.get_stream_read_available(self._stream)
-
-    def get_write_available(self):
-        """Return the number of frames that can be written without waiting.
-
-        :rtype: integer
-        """
-        return pa.get_stream_write_available(self._stream)
-
-
 class PyAudio:
     """Python interface to PortAudio.
 
@@ -586,6 +278,313 @@ class PyAudio:
 
     **Details**
     """
+
+    class Stream:
+        """PortAudio Stream Wrapper. Use :py:func:`PyAudio.open` to instantiate.
+
+        **Opening and Closing**
+          :py:func:`__init__`, :py:func:`close`
+
+        **Stream Info**
+          :py:func:`get_input_latency`, :py:func:`get_output_latency`,
+          :py:func:`get_time`, :py:func:`get_cpu_load`
+
+        **Stream Management**
+          :py:func:`start_stream`, :py:func:`stop_stream`, :py:func:`is_active`,
+          :py:func:`is_stopped`
+
+        **Input Output**
+          :py:func:`write`, :py:func:`read`, :py:func:`get_read_available`,
+          :py:func:`get_write_available`
+        """
+        def __init__(self,
+                     PA_manager,
+                     rate,
+                     channels,
+                     format,
+                     input=False,
+                     output=False,
+                     input_device_index=None,
+                     output_device_index=None,
+                     frames_per_buffer=pa.paFramesPerBufferUnspecified,
+                     start=True,
+                     input_host_api_specific_stream_info=None,
+                     output_host_api_specific_stream_info=None,
+                     stream_callback=None):
+            """Initialize an audio stream.
+
+            Do not call directly. Use :py:func:`PyAudio.open`.
+
+            A stream can either be input, output, or both.
+
+            :param PA_manager: A reference to the managing :py:class:`PyAudio`
+                instance
+            :param rate: Sampling rate
+            :param channels: Number of channels
+            :param format: Sampling size and format. See |PaSampleFormat|.
+            :param input: Specifies whether this is an input stream.
+                Defaults to ``False``.
+            :param output: Specifies whether this is an output stream.
+                Defaults to ``False``.
+            :param input_device_index: Index of Input Device to use.
+                Unspecified (or ``None``) uses default device.
+                Ignored if `input` is ``False``.
+            :param output_device_index:
+                Index of Output Device to use.
+                Unspecified (or ``None``) uses the default device.
+                Ignored if `output` is ``False``.
+            :param frames_per_buffer: Specifies the number of frames per buffer.
+            :param start: Start the stream running immediately.
+                Defaults to ``True``. In general, there is no reason to set
+                this to ``False``.
+            :param input_host_api_specific_stream_info: Specifies a host API
+                specific stream information data structure for input.
+
+                .. only:: pamac
+
+                   See :py:class:`PaMacCoreStreamInfo`.
+
+            :param output_host_api_specific_stream_info: Specifies a host API
+                specific stream information data structure for output.
+
+                .. only:: pamac
+
+                   See :py:class:`PaMacCoreStreamInfo`.
+
+            :param stream_callback: Specifies a callback function for
+                *non-blocking* (callback) operation.  Default is
+                ``None``, which indicates *blocking* operation (i.e.,
+                :py:func:`PyAudio.Stream.read` and
+                :py:func:`PyAudio.Stream.write`).  To use non-blocking
+                operation, specify a callback that conforms to the following
+                signature:
+
+                .. code-block:: python
+
+                   callback(in_data,      # recorded data if input=True; else None
+                            frame_count,  # number of frames
+                            time_info,    # dictionary
+                            status_flags) # PaCallbackFlags
+
+                ``time_info`` is a dictionary with the following keys:
+                ``input_buffer_adc_time``, ``current_time``, and
+                ``output_buffer_dac_time``; see the PortAudio
+                documentation for their meanings.  ``status_flags`` is one
+                of |PaCallbackFlags|.
+
+                The callback must return a tuple:
+
+                .. code-block:: python
+
+                    (out_data, flag)
+
+                ``out_data`` is a byte array whose length should be the
+                (``frame_count * channels * bytes-per-channel``) if
+                ``output=True`` or ``None`` if ``output=False``.  ``flag``
+                must be either :py:data:`paContinue`, :py:data:`paComplete` or
+                :py:data:`paAbort` (one of |PaCallbackReturnCodes|).
+                When ``output=True`` and ``out_data`` does not contain at
+                least ``frame_count`` frames, :py:data:`paComplete` is
+                assumed for ``flag``.
+
+                **Note:** ``stream_callback`` is called in a separate
+                thread (from the main thread).  Exceptions that occur in
+                the ``stream_callback`` will:
+
+                1. print a traceback on standard error to aid debugging,
+                2. queue the exception to be thrown (at some point) in
+                   the main thread, and
+                3. return `paAbort` to PortAudio to stop the stream.
+
+                **Note:** Do not call :py:func:`PyAudio.Stream.read` or
+                :py:func:`PyAudio.Stream.write` if using non-blocking operation.
+
+                **See:** PortAudio's callback signature for additional
+                details: http://portaudio.com/docs/v19-doxydocs/portaudio_8h.html#a8a60fb2a5ec9cbade3f54a9c978e2710
+
+            :raise ValueError: Neither input nor output are set True.
+            """
+            if not (input or output):
+                raise ValueError("Must specify an input or output " + "stream.")
+
+            self._parent = PA_manager
+            self._is_input = input
+            self._is_output = output
+            self._is_running = start
+            self._rate = rate
+            self._channels = channels
+            self._format = format
+            self._frames_per_buffer = frames_per_buffer
+
+            arguments = {
+                'rate' : rate,
+                'channels' : channels,
+                'format' : format,
+                'input' : input,
+                'output' : output,
+                'input_device_index' : input_device_index,
+                'output_device_index' : output_device_index,
+                'frames_per_buffer' : frames_per_buffer}
+
+            if input_host_api_specific_stream_info:
+                _l = input_host_api_specific_stream_info
+                arguments[
+                    'input_host_api_specific_stream_info'
+                    ] = _l._get_host_api_stream_object()
+
+            if output_host_api_specific_stream_info:
+                _l = output_host_api_specific_stream_info
+                arguments[
+                    'output_host_api_specific_stream_info'
+                    ] = _l._get_host_api_stream_object()
+
+            if stream_callback:
+                arguments['stream_callback'] = stream_callback
+
+            # calling pa.open returns a stream object
+            self._stream = pa.open(**arguments)
+
+            self._input_latency = self._stream.inputLatency
+            self._output_latency = self._stream.outputLatency
+
+            if self._is_running:
+                pa.start_stream(self._stream)
+
+        def close(self):
+            """Closes the stream."""
+            pa.close(self._stream)
+            self._is_running = False
+            self._parent._remove_stream(self)
+
+        # Stream Info
+
+        def get_input_latency(self):
+            """Returns the input latency.
+
+            :rtype: float
+            """
+            return self._stream.inputLatency
+
+        def get_output_latency(self):
+            """Returns the output latency.
+
+            :rtype: float
+            """
+            return self._stream.outputLatency
+
+        def get_time(self):
+            """Returns stream time.
+
+            :rtype: float
+            """
+            return pa.get_stream_time(self._stream)
+
+        def get_cpu_load(self):
+            """Return the CPU load. Always 0.0 when using the blocking API.
+
+            :rtype: float
+            """
+            return pa.get_stream_cpu_load(self._stream)
+
+        # Stream Lifecycle
+
+        def start_stream(self):
+            """Starts the stream."""
+            if self._is_running:
+                return
+
+            pa.start_stream(self._stream)
+            self._is_running = True
+
+        def stop_stream(self):
+            """Stops the stream."""
+            if not self._is_running:
+                return
+
+            pa.stop_stream(self._stream)
+            self._is_running = False
+
+        def is_active(self):
+            """Returns whether the stream is active.
+
+            :rtype: bool
+            """
+            return pa.is_stream_active(self._stream)
+
+        def is_stopped(self):
+            """Returns whether the stream is stopped.
+
+            :rtype: bool
+            """
+            return pa.is_stream_stopped(self._stream)
+
+        # Stream blocking I/O
+
+        def write(self, frames, num_frames=None, exception_on_underflow=False):
+            """Write samples to the stream for playback.
+
+            Do not call when using non-blocking mode.
+
+            :param frames:
+               The frames of data.
+            :param num_frames:
+               The number of frames to write.
+               Defaults to None, in which this value will be
+               automatically computed.
+            :param exception_on_underflow:
+               Specifies whether an IOError exception should be thrown
+               (or silently ignored) on buffer underflow. Defaults
+               to False for improved performance, especially on
+               slower platforms.
+
+            :raises IOError: if the stream is not an output stream
+               or if the write operation was unsuccessful.
+
+            :rtype: `None`
+            """
+            if not self._is_output:
+                raise IOError("Not output stream", paCanNotWriteToAnInputOnlyStream)
+
+            if num_frames == None:
+                # Determine how many frames to read:
+                width = get_sample_size(self._format)
+                num_frames = int(len(frames) / (self._channels * width))
+
+            pa.write_stream(self._stream, frames, num_frames,
+                            exception_on_underflow)
+
+        def read(self, num_frames, exception_on_overflow=True):
+            """Read samples from the stream.
+
+            Do not call when using non-blocking mode.
+
+            :param num_frames: The number of frames to read.
+            :param exception_on_overflow:
+               Specifies whether an IOError exception should be thrown
+               (or silently ignored) on input buffer overflow. Defaults
+               to True.
+            :raises IOError: if stream is not an input stream
+              or if the read operation was unsuccessful.
+            :rtype: bytes
+            """
+            if not self._is_input:
+                raise IOError("Not input stream",
+                              paCanNotReadFromAnOutputOnlyStream)
+            return pa.read_stream(self._stream, num_frames, exception_on_overflow)
+
+        def get_read_available(self):
+            """Return the number of frames that can be read without waiting.
+
+            :rtype: integer
+            """
+            return pa.get_stream_read_available(self._stream)
+
+        def get_write_available(self):
+            """Return the number of frames that can be written without waiting.
+
+            :rtype: integer
+            """
+            return pa.get_stream_write_available(self._stream)
 
     # Initialization and Termination
 
@@ -634,18 +633,19 @@ class PyAudio:
     def open(self, *args, **kwargs):
         """Opens a new stream.
 
-        See constructor for :py:func:`Stream.__init__` for parameter details.
+        See constructor for :py:func:`PyAudio.Stream.__init__` for parameter
+        details.
 
-        :returns: A new :py:class:`Stream`
+        :returns: A new :py:class:`PyAudio.Stream`
         """
-        stream = Stream(self, *args, **kwargs)
+        stream = PyAudio.Stream(self, *args, **kwargs)
         self._streams.add(stream)
         return stream
 
     def close(self, stream):
-        """Closes a stream. Use :py:func:`Stream.close` instead.
+        """Closes a stream. Use :py:func:`PyAudio.Stream.close` instead.
 
-        :param stream: An instance of the :py:class:`Stream` object.
+        :param stream: An instance of the :py:class:`PyAudio.Stream` object.
         :raises ValueError: if stream does not exist.
         """
         if stream not in self._streams:
@@ -656,7 +656,7 @@ class PyAudio:
     def _remove_stream(self, stream):
         """Removes a stream. (Internal)
 
-        :param stream: An instance of the :py:class:`Stream` object.
+        :param stream: An instance of the :py:class:`PyAudio.Stream` object.
         """
         if stream in self._streams:
             self._streams.remove(stream)
@@ -885,7 +885,7 @@ else:
         it as the argument in :py:func:`PyAudio.open` to parameters
         ``input_host_api_specific_stream_info`` or
         ``output_host_api_specific_stream_info``.  (See
-        :py:func:`Stream.__init__`.)
+        :py:func:`PyAudio.Stream.__init__`.)
 
         :note: macOS-only.
 
@@ -953,4 +953,27 @@ else:
             return self._paMacCoreStreamInfo.channel_map
 
         def _get_host_api_stream_object(self):
+            warnings.warn(
+                "PaMacCoreStreamInfo._get_host_api_stream_object is deprecated",
+                DeprecationWarning)
             return self._paMacCoreStreamInfo
+
+
+# The top-level Stream class is reserved for future API changes. Users should
+# never instantiate Stream directly. Instead, users must use PyAudio.open()
+# instead, as documented.
+#
+# But for existing code that happens to instantiate Stream directly, this class
+# issues a warning and maintains backwards-compatibility, for now. In the
+# future, Stream may be repurposed.
+class Stream(PyAudio.Stream):
+    """Reserved. Do not instantiate."""
+
+    def __init__(self, *args, **kwargs):
+        # Users should never instantiate this class.
+        warnings.warn(
+            "Do not instantiate pyaudio.Stream directly. Use "
+            "pyaudio.PyAudio.open() instead. pyaudio.Stream may change or be "
+            "removed in the future.",
+            DeprecationWarning)
+        super().__init__(*args, **kwargs)
