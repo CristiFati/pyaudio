@@ -167,7 +167,7 @@ PyObject *OpenStream(PyObject *self, PyObject *args, PyObject *kwargs) {
 #ifdef MACOSX
     if (output_host_specific_stream_info) {
       output_parameters.hostApiSpecificStreamInfo =
-          &output_host_specific_stream_info->paMacCoreStreamInfo;
+          &output_host_specific_stream_info->stream_info;
     }
 #endif
   }
@@ -197,7 +197,7 @@ PyObject *OpenStream(PyObject *self, PyObject *args, PyObject *kwargs) {
 #ifdef MACOSX
     if (input_host_specific_stream_info) {
       input_parameters.hostApiSpecificStreamInfo =
-          &input_host_specific_stream_info->paMacCoreStreamInfo;
+          &input_host_specific_stream_info->stream_info;
     }
 #endif
   }

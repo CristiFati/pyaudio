@@ -10,12 +10,12 @@
 #include "pa_mac_core.h"
 
 static void cleanup(PyAudioMacCoreStreamInfo *self) {
-  if (self->channelMap != NULL) {
-    free(self->channelMap);
-    self->channelMap = NULL;
+  if (self->channel_map != NULL) {
+    free(self->channel_map);
+    self->channel_map = NULL;
   }
   self->flags = paMacCorePlayNice;
-  self->channelMapSize = 0;
+  self->channel_map_size = 0;
 }
 
 static void dealloc(PyAudioMacCoreStreamInfo *self) {
@@ -43,11 +43,12 @@ static int init(PyObject *_self, PyObject *args, PyObject *kwargs) {
       return -1;
     }
 
-    // generate SInt32 channelMap
-    self->channelMapSize = (int)PyTuple_Size(channel_map);
-    self->channelMap = (SInt32 *)malloc(sizeof(SInt32) * self->channelMapSize);
+    // generate SInt32 channel_map
+    self->channel_map_size = (int)PyTuple_Size(channel_map);
+    self->channel_map =
+        (SInt32 *)malloc(sizeof(SInt32) * self->channel_map_size);
 
-    if (self->channelMap == NULL) {
+    if (self->channel_map == NULL) {
       PyErr_SetString(PyExc_SystemError, "Out of memory");
       cleanup(self);
       return -1;
@@ -55,7 +56,7 @@ static int init(PyObject *_self, PyObject *args, PyObject *kwargs) {
 
     PyObject *element;
     int i;
-    for (i = 0; i < self->channelMapSize; ++i) {
+    for (i = 0; i < self->channel_map_size; ++i) {
       element = PyTuple_GetItem(channel_map, i);
       if (element == NULL) {
         PyErr_SetString(PyExc_ValueError,
@@ -72,15 +73,15 @@ static int init(PyObject *_self, PyObject *args, PyObject *kwargs) {
       }
 
       PyObject *long_element = PyNumber_Long(element);
-      self->channelMap[i] = (SInt32)PyLong_AsLong(long_element);
+      self->channel_map[i] = (SInt32)PyLong_AsLong(long_element);
       Py_DECREF(long_element);
     }
   }
 
-  PaMacCore_SetupStreamInfo(&self->paMacCoreStreamInfo, flags);
-  if (self->channelMap) {
-    PaMacCore_SetupChannelMap(&self->paMacCoreStreamInfo, self->channelMap,
-                              self->channelMapSize);
+  PaMacCore_SetupStreamInfo(&self->stream_info, flags);
+  if (self->channel_map) {
+    PaMacCore_SetupChannelMap(&self->stream_info, self->channel_map,
+                              self->channel_map_size);
   }
 
   self->flags = flags;
@@ -93,28 +94,28 @@ static PyObject *get_flags(PyAudioMacCoreStreamInfo *self, void *closure) {
 
 static PyObject *get_channel_map(PyAudioMacCoreStreamInfo *self,
                                  void *closure) {
-  if (self->channelMap == NULL || self->channelMapSize == 0) {
+  if (self->channel_map == NULL || self->channel_map_size == 0) {
     Py_INCREF(Py_None);
     return Py_None;
   }
 
   int i;
-  PyObject *channelMapTuple = PyTuple_New(self->channelMapSize);
-  for (i = 0; i < self->channelMapSize; ++i) {
-    PyObject *element = PyLong_FromLong(self->channelMap[i]);
+  PyObject *channel_map_tuple = PyTuple_New(self->channel_map_size);
+  for (i = 0; i < self->channel_map_size; ++i) {
+    PyObject *element = PyLong_FromLong(self->channel_map[i]);
     if (!element) {
       PyErr_SetString(PyExc_SystemError, "Invalid channel map");
       return NULL;
     }
 
-    if (PyTuple_SetItem(channelMapTuple, i,
-                        PyLong_FromLong(self->channelMap[i]))) {
+    if (PyTuple_SetItem(channel_map_tuple, i,
+                        PyLong_FromLong(self->channel_map[i]))) {
       // non-zero on error
       PyErr_SetString(PyExc_SystemError, "Can't create channel map.");
       return NULL;
     }
   }
-  return channelMapTuple;
+  return channel_map_tuple;
 }
 
 static int antiset(PyAudioMacCoreStreamInfo *self, PyObject *value,
@@ -127,10 +128,8 @@ static int antiset(PyAudioMacCoreStreamInfo *self, PyObject *value,
 
 static PyGetSetDef get_setters[] = {
     {"flags", (getter)get_flags, (setter)antiset, "flags", NULL},
-
     {"channel_map", (getter)get_channel_map, (setter)antiset, "channel map",
      NULL},
-
     {NULL}};
 
 PyTypeObject PyAudioMacCoreStreamInfoType = {
@@ -141,10 +140,10 @@ PyTypeObject PyAudioMacCoreStreamInfoType = {
     .tp_basicsize = sizeof(PyAudioMacCoreStreamInfo),
     .tp_itemsize = 0,
     .tp_dealloc = (destructor)dealloc,
-    .tp_flags = Py_TPFLAGS_DEFAULT,
+    .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
     .tp_doc = PyDoc_STR("macOS Specific HostAPI configuration"),
     .tp_getset = get_setters,
-    .tp_init = (int (*)(PyObject *, PyObject *, PyObject *))init,
+    .tp_init = (initproc)init,
     .tp_new = PyType_GenericNew,
 };
 
