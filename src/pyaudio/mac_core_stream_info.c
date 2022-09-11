@@ -25,17 +25,18 @@ static void dealloc(PyAudioMacCoreStreamInfo *self) {
 
 static int init(PyObject *_self, PyObject *args, PyObject *kwargs) {
   PyAudioMacCoreStreamInfo *self = (PyAudioMacCoreStreamInfo *)_self;
+  // Init struct with default values.
+  self->flags = paMacCorePlayNice;
+  self->channel_map = NULL;
+  self->channel_map_size = 0;
+  PaMacCore_SetupStreamInfo(&self->stream_info, self->flags);
+
   PyObject *channel_map = NULL;
-  int flags = paMacCorePlayNice;
-
   static char *kwlist[] = {"flags", "channel_map", NULL};
-
-  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|iO", kwlist, &flags,
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|iO", kwlist, &self->flags,
                                    &channel_map)) {
     return -1;
   }
-
-  cleanup(self);
 
   if (channel_map != NULL) {
     if (!PyTuple_Check(channel_map)) {
@@ -54,10 +55,8 @@ static int init(PyObject *_self, PyObject *args, PyObject *kwargs) {
       return -1;
     }
 
-    PyObject *element;
-    int i;
-    for (i = 0; i < self->channel_map_size; ++i) {
-      element = PyTuple_GetItem(channel_map, i);
+    for (int i = 0; i < self->channel_map_size; ++i) {
+      PyObject *element = PyTuple_GetItem(channel_map, i);
       if (element == NULL) {
         PyErr_SetString(PyExc_ValueError,
                         "Internal error: out of bounds index");
@@ -76,15 +75,11 @@ static int init(PyObject *_self, PyObject *args, PyObject *kwargs) {
       self->channel_map[i] = (SInt32)PyLong_AsLong(long_element);
       Py_DECREF(long_element);
     }
-  }
 
-  PaMacCore_SetupStreamInfo(&self->stream_info, flags);
-  if (self->channel_map) {
     PaMacCore_SetupChannelMap(&self->stream_info, self->channel_map,
                               self->channel_map_size);
   }
 
-  self->flags = flags;
   return 0;
 }
 
@@ -99,9 +94,8 @@ static PyObject *get_channel_map(PyAudioMacCoreStreamInfo *self,
     return Py_None;
   }
 
-  int i;
   PyObject *channel_map_tuple = PyTuple_New(self->channel_map_size);
-  for (i = 0; i < self->channel_map_size; ++i) {
+  for (int i = 0; i < self->channel_map_size; ++i) {
     PyObject *element = PyLong_FromLong(self->channel_map[i]);
     if (!element) {
       PyErr_SetString(PyExc_SystemError, "Invalid channel map");
