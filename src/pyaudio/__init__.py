@@ -427,16 +427,14 @@ class PyAudio:
                 'frames_per_buffer' : frames_per_buffer}
 
             if input_host_api_specific_stream_info:
-                _l = input_host_api_specific_stream_info
                 arguments[
                     'input_host_api_specific_stream_info'
-                    ] = _l._get_host_api_stream_object()
+                ] = input_host_api_specific_stream_info
 
             if output_host_api_specific_stream_info:
-                _l = output_host_api_specific_stream_info
                 arguments[
                     'output_host_api_specific_stream_info'
-                    ] = _l._get_host_api_stream_object()
+                ] = output_host_api_specific_stream_info
 
             if stream_callback:
                 arguments['stream_callback'] = stream_callback
@@ -873,12 +871,8 @@ class PyAudio:
 
 # Host Specific Stream Info
 
-try:
-    paMacCoreStreamInfo = pa.paMacCoreStreamInfo
-except AttributeError:
-    pass
-else:
-    class PaMacCoreStreamInfo:
+if hasattr(pa, 'paMacCoreStreamInfo'):
+    class PaMacCoreStreamInfo(pa.paMacCoreStreamInfo):
         """PortAudio Host API Specific Stream Info for macOS-specific settings.
 
         To configure macOS-specific settings, instantiate this class and pass
@@ -905,8 +899,17 @@ else:
           :py:data:`paMacCoreMinimizeCPUButPlayNice`,
           :py:data:`paMacCoreMinimizeCPU`
 
-        **Settings**
-          :py:func:`get_flags`, :py:func:`get_channel_map`
+        .. attribute:: flags
+
+           The flags specified to the constructor.
+
+           :type: |PaMacCoreFlags|
+
+        .. attribute:: channel_map
+
+           The channel_map specified to the constructor
+
+           :type: tuple or None if unspecified
         """
         paMacCoreChangeDeviceParameters   = pa.paMacCoreChangeDeviceParameters
         paMacCoreFailIfConversionRequired = pa.paMacCoreFailIfConversionRequired
@@ -926,37 +929,60 @@ else:
             See PortAudio documentation for more details on these parameters.
 
             :param flags: |PaMacCoreFlags| OR'ed together.
-                See :py:class:`PaMacCoreStreamInfo`.
             :param channel_map: An array describing the channel mapping.
                 See PortAudio documentation for usage.
             """
-            kwargs = {"flags": flags, "channel_map": channel_map}
-            if flags == None:
-                del kwargs["flags"]
-            if channel_map == None:
-                del kwargs["channel_map"]
+            kwargs = {}
+            if flags is not None:
+                kwargs["flags"] = flags
+            if channel_map is not None:
+                kwargs["channel_map"] = channel_map
+            super().__init__(**kwargs)
 
-            self._paMacCoreStreamInfo = paMacCoreStreamInfo(**kwargs)
+        # Deprecated:
 
         def get_flags(self):
-            """Returns the flags set at instantiation.
+            """Returns the flags set at instantiation. Deprecated.
 
             :rtype: integer
+
+            .. deprecated:: 0.2.13
+               Use :py:attr:`flags` property.
             """
-            return self._paMacCoreStreamInfo.flags
+            warnings.warn(
+                "PaMacCoreStreamInfo.get_flags is deprecated. Use the flags "
+                "property instead.",
+                DeprecationWarning,
+                stacklevel=2)
+            return self.flags
 
         def get_channel_map(self):
-            """Returns the channel map set at instantiation.
+            """Returns the channel map set at instantiation. Deprecated.
 
             :rtype: tuple or None
+
+            .. deprecated:: 0.2.13
+               Use :py:attr:`channel_map` property.
             """
-            return self._paMacCoreStreamInfo.channel_map
+            warnings.warn(
+                "PaMacCoreStreamInfo.get_channel_map is deprecated. Use the "
+                "channel_map property instead.",
+                DeprecationWarning,
+                stacklevel=2)
+            return self.channel_map
 
         def _get_host_api_stream_object(self):
+            """Returns the underyling stream info.
+
+            .. :deprecated:: 0.2.13
+               Use stream_info property.
+            """
             warnings.warn(
-                "PaMacCoreStreamInfo._get_host_api_stream_object is deprecated",
-                DeprecationWarning)
-            return self._paMacCoreStreamInfo
+                "PaMacCoreStreamInfo._get_host_api_stream_object is "
+                "deprecated. Use this object instance instead.",
+                DeprecationWarning,
+                stacklevel=2)
+            return self
 
 
 # The top-level Stream class is reserved for future API changes. Users should
@@ -975,5 +1001,6 @@ class Stream(PyAudio.Stream):
             "Do not instantiate pyaudio.Stream directly. Use "
             "pyaudio.PyAudio.open() instead. pyaudio.Stream may change or be "
             "removed in the future.",
-            DeprecationWarning)
+            DeprecationWarning,
+            stacklevel=2)
         super().__init__(*args, **kwargs)

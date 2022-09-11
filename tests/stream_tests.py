@@ -222,9 +222,9 @@ class StreamTests(unittest.TestCase):
             flags=pyaudio.PaMacCoreStreamInfo.paMacCorePlayNice, # default
             channel_map=channel_map)
 
-        self.assertEqual(stream_info.get_flags(),
+        self.assertEqual(stream_info.flags,
                          pyaudio.PaMacCoreStreamInfo.paMacCorePlayNice)
-        self.assertEqual(stream_info.get_channel_map(), channel_map)
+        self.assertEqual(stream_info.channel_map, channel_map)
 
         stream = self.p.open(
             format=self.p.get_format_from_width(2),
