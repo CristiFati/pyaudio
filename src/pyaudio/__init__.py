@@ -113,84 +113,82 @@ except ImportError:
     print("Could not import the PyAudio C module 'pyaudio._portaudio'.")
     raise
 
-############################################################
-# GLOBALS
-############################################################
 
-##### PaSampleFormat Sample Formats #####
+# PaSampleFormat Sample Formats
 
-paFloat32      = pa.paFloat32      #: 32 bit float
-paInt32        = pa.paInt32        #: 32 bit int
-paInt24        = pa.paInt24        #: 24 bit int
-paInt16        = pa.paInt16        #: 16 bit int
-paInt8         = pa.paInt8         #: 8 bit int
-paUInt8        = pa.paUInt8        #: 8 bit unsigned int
-paCustomFormat = pa.paCustomFormat #: a custom data format
+paFloat32 = pa.paFloat32  #: 32 bit float
+paInt32 = pa.paInt32  #: 32 bit int
+paInt24 = pa.paInt24  #: 24 bit int
+paInt16 = pa.paInt16  #: 16 bit int
+paInt8 = pa.paInt8  #: 8 bit int
+paUInt8 = pa.paUInt8  #: 8 bit unsigned int
+paCustomFormat = pa.paCustomFormat  #: a custom data format
 
-###### HostAPI TypeId #####
+# HostAPI TypeId
 
-paInDevelopment = pa.paInDevelopment #: Still in development
-paDirectSound   = pa.paDirectSound   #: DirectSound (Windows only)
-paMME           = pa.paMME           #: Multimedia Extension (Windows only)
-paASIO          = pa.paASIO          #: Steinberg Audio Stream Input/Output
-paSoundManager  = pa.paSoundManager  #: SoundManager (OSX only)
-paCoreAudio     = pa.paCoreAudio     #: CoreAudio (OSX only)
-paOSS           = pa.paOSS           #: Open Sound System (Linux only)
-paALSA          = pa.paALSA          #: Advanced Linux Sound Architecture (Linux only)
-paAL            = pa.paAL            #: Open Audio Library
-paBeOS          = pa.paBeOS          #: BeOS Sound System
-paWDMKS         = pa.paWDMKS         #: Windows Driver Model (Windows only)
-paJACK          = pa.paJACK          #: JACK Audio Connection Kit
-paWASAPI        = pa.paWASAPI        #: Windows Vista Audio stack architecture
-paNoDevice      = pa.paNoDevice      #: Not actually an audio device
+paInDevelopment = pa.paInDevelopment  #: Still in development
+paDirectSound = pa.paDirectSound  #: DirectSound (Windows only)
+paMME = pa.paMME  #: Multimedia Extension (Windows only)
+paASIO = pa.paASIO  #: Steinberg Audio Stream Input/Output
+paSoundManager = pa.paSoundManager  #: SoundManager (OSX only)
+paCoreAudio = pa.paCoreAudio  #: CoreAudio (OSX only)
+paOSS = pa.paOSS  #: Open Sound System (Linux only)
+paALSA = pa.paALSA  #: Advanced Linux Sound Architecture (Linux only)
+paAL = pa.paAL  #: Open Audio Library
+paBeOS = pa.paBeOS  #: BeOS Sound System
+paWDMKS = pa.paWDMKS  #: Windows Driver Model (Windows only)
+paJACK = pa.paJACK  #: JACK Audio Connection Kit
+paWASAPI = pa.paWASAPI  #: Windows Vista Audio stack architecture
+paNoDevice = pa.paNoDevice  #: Not actually an audio device
 
-###### portaudio error codes #####
+# PortAudio Error Codes
 
-paNoError                               = pa.paNoError
-paNotInitialized                        = pa.paNotInitialized
-paUnanticipatedHostError                = pa.paUnanticipatedHostError
-paInvalidChannelCount                   = pa.paInvalidChannelCount
-paInvalidSampleRate                     = pa.paInvalidSampleRate
-paInvalidDevice                         = pa.paInvalidDevice
-paInvalidFlag                           = pa.paInvalidFlag
-paSampleFormatNotSupported              = pa.paSampleFormatNotSupported
-paBadIODeviceCombination                = pa.paBadIODeviceCombination
-paInsufficientMemory                    = pa.paInsufficientMemory
-paBufferTooBig                          = pa.paBufferTooBig
-paBufferTooSmall                        = pa.paBufferTooSmall
-paNullCallback                          = pa.paNullCallback
-paBadStreamPtr                          = pa.paBadStreamPtr
-paTimedOut                              = pa.paTimedOut
-paInternalError                         = pa.paInternalError
-paDeviceUnavailable                     = pa.paDeviceUnavailable
-paIncompatibleHostApiSpecificStreamInfo = pa.paIncompatibleHostApiSpecificStreamInfo
-paStreamIsStopped                       = pa.paStreamIsStopped
-paStreamIsNotStopped                    = pa.paStreamIsNotStopped
-paInputOverflowed                       = pa.paInputOverflowed
-paOutputUnderflowed                     = pa.paOutputUnderflowed
-paHostApiNotFound                       = pa.paHostApiNotFound
-paInvalidHostApi                        = pa.paInvalidHostApi
-paCanNotReadFromACallbackStream         = pa.paCanNotReadFromACallbackStream
-paCanNotWriteToACallbackStream          = pa.paCanNotWriteToACallbackStream
-paCanNotReadFromAnOutputOnlyStream      = pa.paCanNotReadFromAnOutputOnlyStream
-paCanNotWriteToAnInputOnlyStream        = pa.paCanNotWriteToAnInputOnlyStream
-paIncompatibleStreamHostApi             = pa.paIncompatibleStreamHostApi
+paNoError = pa.paNoError
+paNotInitialized = pa.paNotInitialized
+paUnanticipatedHostError = pa.paUnanticipatedHostError
+paInvalidChannelCount = pa.paInvalidChannelCount
+paInvalidSampleRate = pa.paInvalidSampleRate
+paInvalidDevice = pa.paInvalidDevice
+paInvalidFlag = pa.paInvalidFlag
+paSampleFormatNotSupported = pa.paSampleFormatNotSupported
+paBadIODeviceCombination = pa.paBadIODeviceCombination
+paInsufficientMemory = pa.paInsufficientMemory
+paBufferTooBig = pa.paBufferTooBig
+paBufferTooSmall = pa.paBufferTooSmall
+paNullCallback = pa.paNullCallback
+paBadStreamPtr = pa.paBadStreamPtr
+paTimedOut = pa.paTimedOut
+paInternalError = pa.paInternalError
+paDeviceUnavailable = pa.paDeviceUnavailable
+paIncompatibleHostApiSpecificStreamInfo = (
+    pa.paIncompatibleHostApiSpecificStreamInfo)
+paStreamIsStopped = pa.paStreamIsStopped
+paStreamIsNotStopped = pa.paStreamIsNotStopped
+paInputOverflowed = pa.paInputOverflowed
+paOutputUnderflowed = pa.paOutputUnderflowed
+paHostApiNotFound = pa.paHostApiNotFound
+paInvalidHostApi = pa.paInvalidHostApi
+paCanNotReadFromACallbackStream = pa.paCanNotReadFromACallbackStream
+paCanNotWriteToACallbackStream = pa.paCanNotWriteToACallbackStream
+paCanNotReadFromAnOutputOnlyStream = pa.paCanNotReadFromAnOutputOnlyStream
+paCanNotWriteToAnInputOnlyStream = pa.paCanNotWriteToAnInputOnlyStream
+paIncompatibleStreamHostApi = pa.paIncompatibleStreamHostApi
 
-###### portaudio callback return codes ######
+# PortAudio Callback Return Codes
 
-paContinue = pa.paContinue #: There is more audio data to come
-paComplete = pa.paComplete #: This was the last block of audio data
-paAbort    = pa.paAbort    #: An error ocurred, stop playback/recording
+paContinue = pa.paContinue  #: There is more audio data to come
+paComplete = pa.paComplete  #: This was the last block of audio data
+paAbort = pa.paAbort  #: An error ocurred, stop playback/recording
 
-###### portaudio callback flags ######
+# PortAudio Callback Flags
 
-paInputUnderflow  = pa.paInputUnderflow  #: Buffer underflow in input
-paInputOverflow   = pa.paInputOverflow   #: Buffer overflow in input
-paOutputUnderflow = pa.paOutputUnderflow #: Buffer underflow in output
-paOutputOverflow  = pa.paOutputOverflow  #: Buffer overflow in output
-paPrimingOutput   = pa.paPrimingOutput   #: Just priming, not playing yet
+paInputUnderflow = pa.paInputUnderflow  #: Buffer underflow in input
+paInputOverflow = pa.paInputOverflow  #: Buffer overflow in input
+paOutputUnderflow = pa.paOutputUnderflow  #: Buffer underflow in output
+paOutputOverflow = pa.paOutputOverflow  #: Buffer overflow in output
+paPrimingOutput = pa.paPrimingOutput  #: Just priming, not playing yet
 
-###### portaudio misc ######
+# PortAudio Misc Constants
 
 paFramesPerBufferUnspecified = pa.paFramesPerBufferUnspecified
 
@@ -219,16 +217,15 @@ def get_format_from_width(width, unsigned=True):
     if width == 1:
         if unsigned:
             return paUInt8
-        else:
-            return paInt8
-    elif width == 2:
+        return paInt8
+    if width == 2:
         return paInt16
-    elif width == 3:
+    if width == 3:
         return paInt24
-    elif width == 4:
+    if width == 4:
         return paFloat32
-    else:
-        raise ValueError("Invalid width: %d" % width)
+
+    raise ValueError(f"Invalid width: {width}")
 
 
 # Versioning
@@ -361,7 +358,7 @@ class PyAudio:
 
                 .. code-block:: python
 
-                   callback(in_data,      # recorded data if input=True; else None
+                   callback(in_data,      # input data if input=True; else None
                             frame_count,  # number of frames
                             time_info,    # dictionary
                             status_flags) # PaCallbackFlags
@@ -417,14 +414,15 @@ class PyAudio:
             self._frames_per_buffer = frames_per_buffer
 
             arguments = {
-                'rate' : rate,
-                'channels' : channels,
-                'format' : format,
-                'input' : input,
-                'output' : output,
-                'input_device_index' : input_device_index,
-                'output_device_index' : output_device_index,
-                'frames_per_buffer' : frames_per_buffer}
+                'rate': rate,
+                'channels': channels,
+                'format': format,
+                'input': input,
+                'output': output,
+                'input_device_index': input_device_index,
+                'output_device_index': output_device_index,
+                'frames_per_buffer': frames_per_buffer
+            }
 
             if input_host_api_specific_stream_info:
                 arguments[
@@ -541,9 +539,10 @@ class PyAudio:
             :rtype: `None`
             """
             if not self._is_output:
-                raise IOError("Not output stream", paCanNotWriteToAnInputOnlyStream)
+                raise IOError("Not output stream",
+                              paCanNotWriteToAnInputOnlyStream)
 
-            if num_frames == None:
+            if num_frames is None:
                 # Determine how many frames to read:
                 width = get_sample_size(self._format)
                 num_frames = int(len(frames) / (self._channels * width))
@@ -568,7 +567,8 @@ class PyAudio:
             if not self._is_input:
                 raise IOError("Not input stream",
                               paCanNotReadFromAnOutputOnlyStream)
-            return pa.read_stream(self._stream, num_frames, exception_on_overflow)
+            return pa.read_stream(self._stream, num_frames,
+                                  exception_on_overflow)
 
         def get_read_available(self):
             """Return the number of frames that can be read without waiting.
@@ -647,7 +647,7 @@ class PyAudio:
         :raises ValueError: if stream does not exist.
         """
         if stream not in self._streams:
-            raise ValueError("Stream `%s' not found" % str(stream))
+            raise ValueError(f"Stream {stream} not found")
 
         stream.close()
 
@@ -677,8 +677,8 @@ class PyAudio:
         :raises IOError: if no default input device is available
         :rtype: dict
         """
-        defaultHostApiIndex = pa.get_default_host_api()
-        return self.get_host_api_info_by_index(defaultHostApiIndex)
+        default_host_api_index = pa.get_default_host_api()
+        return self.get_host_api_info_by_index(default_host_api_index)
 
     def get_host_api_info_by_type(self, host_api_type):
         """Returns a dictionary containing the Host API parameters for the
@@ -728,13 +728,15 @@ class PyAudio:
 
         :rtype: dict
         """
-        return {'index' : index,
-                'structVersion' : host_api_struct.structVersion,
-                'type' : host_api_struct.type,
-                'name' : host_api_struct.name,
-                'deviceCount' : host_api_struct.deviceCount,
-                'defaultInputDevice' : host_api_struct.defaultInputDevice,
-                'defaultOutputDevice' : host_api_struct.defaultOutputDevice}
+        return {
+            'index': index,
+            'structVersion': host_api_struct.structVersion,
+            'type': host_api_struct.type,
+            'name': host_api_struct.name,
+            'deviceCount': host_api_struct.deviceCount,
+            'defaultInputDevice': host_api_struct.defaultInputDevice,
+            'defaultOutputDevice': host_api_struct.defaultOutputDevice
+        }
 
     # Device Inspection
 
@@ -780,17 +782,18 @@ class PyAudio:
         :rtype: bool
         :raises ValueError: tuple containing (error string, |PaErrorCode|).
         """
-        if input_device == None and output_device == None:
-            raise ValueError("must specify stream format for input, " +\
-                             "output, or both", paInvalidDevice);
+        if input_device is None and output_device is None:
+            raise ValueError(
+                "Must specify stream format for input, output, or both",
+                paInvalidDevice)
 
         kwargs = {}
-        if input_device != None:
+        if input_device is not None:
             kwargs['input_device'] = input_device
             kwargs['input_channels'] = input_channels
             kwargs['input_format'] = input_format
 
-        if output_device != None:
+        if output_device is not None:
             kwargs['output_device'] = output_device
             kwargs['output_channels'] = output_channels
             kwargs['output_format'] = output_format
@@ -911,17 +914,17 @@ if hasattr(pa, 'paMacCoreStreamInfo'):
 
            :type: tuple or None if unspecified
         """
-        paMacCoreChangeDeviceParameters   = pa.paMacCoreChangeDeviceParameters
+        paMacCoreChangeDeviceParameters = pa.paMacCoreChangeDeviceParameters
         paMacCoreFailIfConversionRequired = pa.paMacCoreFailIfConversionRequired
-        paMacCoreConversionQualityMin     = pa.paMacCoreConversionQualityMin
-        paMacCoreConversionQualityMedium  = pa.paMacCoreConversionQualityMedium
-        paMacCoreConversionQualityLow     = pa.paMacCoreConversionQualityLow
-        paMacCoreConversionQualityHigh    = pa.paMacCoreConversionQualityHigh
-        paMacCoreConversionQualityMax     = pa.paMacCoreConversionQualityMax
-        paMacCorePlayNice                 = pa.paMacCorePlayNice
-        paMacCorePro                      = pa.paMacCorePro
-        paMacCoreMinimizeCPUButPlayNice   = pa.paMacCoreMinimizeCPUButPlayNice
-        paMacCoreMinimizeCPU              = pa.paMacCoreMinimizeCPU
+        paMacCoreConversionQualityMin = pa.paMacCoreConversionQualityMin
+        paMacCoreConversionQualityMedium = pa.paMacCoreConversionQualityMedium
+        paMacCoreConversionQualityLow = pa.paMacCoreConversionQualityLow
+        paMacCoreConversionQualityHigh = pa.paMacCoreConversionQualityHigh
+        paMacCoreConversionQualityMax = pa.paMacCoreConversionQualityMax
+        paMacCorePlayNice = pa.paMacCorePlayNice
+        paMacCorePro = pa.paMacCorePro
+        paMacCoreMinimizeCPUButPlayNice = pa.paMacCoreMinimizeCPUButPlayNice
+        paMacCoreMinimizeCPU = pa.paMacCoreMinimizeCPU
 
         def __init__(self, flags=None, channel_map=None):
             """Initialize with macOS setting flags and channel_map.
