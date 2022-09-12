@@ -22,6 +22,10 @@ class MiscTests(unittest.TestCase):
         self.assertEqual(pyaudio.get_format_from_width(2), pyaudio.paInt16)
         self.assertEqual(pyaudio.get_format_from_width(3), pyaudio.paInt24)
         self.assertEqual(pyaudio.get_format_from_width(4), pyaudio.paFloat32)
+        with self.assertRaises(ValueError):
+            pyaudio.get_format_from_width(-1)
+        with self.assertRaises(ValueError):
+            pyaudio.get_format_from_width(5)
 
     def test_get_format_from_width_pyaudio(self):
         p = pyaudio.PyAudio()
@@ -32,6 +36,11 @@ class MiscTests(unittest.TestCase):
         self.assertEqual(p.get_format_from_width(2), pyaudio.paInt16)
         self.assertEqual(p.get_format_from_width(3), pyaudio.paInt24)
         self.assertEqual(p.get_format_from_width(4), pyaudio.paFloat32)
+        with self.assertRaises(ValueError):
+            p.get_format_from_width(-1)
+        with self.assertRaises(ValueError):
+            p.get_format_from_width(5)
+
         p.terminate()
 
     def test_get_portaudio_version(self):

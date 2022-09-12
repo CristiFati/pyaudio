@@ -132,6 +132,36 @@ class StreamTests(unittest.TestCase):
             in_stream.get_read_available()
 
     @unittest.skipIf(SKIP_HW_TESTS, 'Hardware device required.')
+    def test_close_stream_from_pyaudio(self):
+        out_stream = self.p.open(
+            format=self.p.get_format_from_width(2),
+            channels=2,
+            rate=44100,
+            output=True)
+
+        self.assertTrue(out_stream.is_active())
+        self.p.close(out_stream)
+        with self.assertRaises(OSError) as err:
+            out_stream.is_stopped()
+        self.assertEqual(err.exception.args[0], pyaudio.paBadStreamPtr)
+        self.assertTrue(out_stream not in self.p._streams)
+
+    @unittest.skipIf(SKIP_HW_TESTS, 'Hardware device required.')
+    def test_close_unknown_stream(self):
+        out_stream = self.p.open(
+            format=self.p.get_format_from_width(2),
+            channels=2,
+            rate=44100,
+            output=True)
+
+        # Simulate the condition where out_stream is unknown to self.p:
+        self.p._streams = set()
+        with self.assertRaises(ValueError):
+            self.p.close(out_stream)
+
+        out_stream.close()
+
+    @unittest.skipIf(SKIP_HW_TESTS, 'Hardware device required.')
     def test_output_blocking(self):
         out_stream = self.p.open(
             format=self.p.get_format_from_width(2),

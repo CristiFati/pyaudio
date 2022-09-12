@@ -16,7 +16,7 @@ class HostDeviceApiTests(unittest.TestCase):
     def tearDown(self):
         self.p.terminate()
 
-    @unittest.skipIf(SKIP_HW_TESTS, 'Loopback device required.')
+    @unittest.skipIf(SKIP_HW_TESTS, 'Hardware device required.')
     def test_host_api(self):
         """Host API tests"""
         self.assertTrue(self.p.get_host_api_count() > 0)
@@ -39,7 +39,7 @@ class HostDeviceApiTests(unittest.TestCase):
         with self.assertRaises(IOError):
             self.p.get_host_api_info_by_index(-2)
 
-    @unittest.skipIf(SKIP_HW_TESTS, 'Loopback device required.')
+    @unittest.skipIf(SKIP_HW_TESTS, 'Hardware device required.')
     def test_device_api(self):
         """Device API tests"""
         self.assertTrue(self.p.get_device_count() > 0)
@@ -58,7 +58,7 @@ class HostDeviceApiTests(unittest.TestCase):
         with self.assertRaises(IOError):
             self.p.get_device_info_by_index(-2)
 
-    @unittest.skipIf(SKIP_HW_TESTS, 'Loopback device required.')
+    @unittest.skipIf(SKIP_HW_TESTS, 'Hardware device required.')
     def test_format_supported(self):
         with self.assertRaises(ValueError):
             # Need to specify input_device or output_device
