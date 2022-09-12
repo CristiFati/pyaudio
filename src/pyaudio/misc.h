@@ -6,8 +6,9 @@
 #endif
 #include "Python.h"
 
-PyObject *GetVersion(PyObject *self, PyObject *args);
-PyObject *GetVersionText(PyObject *self, PyObject *args);
-PyObject *GetSampleSize(PyObject *self, PyObject *args);
-PyObject *IsFormatSupported(PyObject *self, PyObject *args, PyObject *kwargs);
+PyObject *PyAudio_GetPortAudioVersion(PyObject *self, PyObject *args);
+PyObject *PyAudio_GetPortAudioVersionText(PyObject *self, PyObject *args);
+PyObject *PyAudio_GetSampleSize(PyObject *self, PyObject *args);
+PyObject *PyAudio_IsFormatSupported(PyObject *self, PyObject *args,
+                                    PyObject *kwargs);
 #endif  // MISC_H_

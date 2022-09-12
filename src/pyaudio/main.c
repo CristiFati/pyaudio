@@ -41,88 +41,93 @@
 
 static PyMethodDef exported_functions[] = {
     // init.h
-    {"initialize", Initialize, METH_VARARGS, "Initializes PortAudio"},
+    {"initialize", PyAudio_Initialize, METH_VARARGS, "Initializes PortAudio"},
 
-    {"terminate", Terminate, METH_VARARGS, "Terminates PortAudio"},
+    {"terminate", PyAudio_Terminate, METH_VARARGS, "Terminates PortAudio"},
 
     // misc.h
-    {"get_sample_size", GetSampleSize, METH_VARARGS,
+    {"get_sample_size", PyAudio_GetSampleSize, METH_VARARGS,
      "Returns sample size of a format in bytes"},
 
-    {"is_format_supported", (PyCFunction)IsFormatSupported,
+    {"is_format_supported", (PyCFunction)PyAudio_IsFormatSupported,
      METH_VARARGS | METH_KEYWORDS, "Returns whether format is supported"},
 
-    {"get_version", GetVersion, METH_VARARGS, "PortAudio version"},
+    {"get_version", PyAudio_GetPortAudioVersion, METH_VARARGS,
+     "PortAudio version"},
 
-    {"get_version_text", GetVersionText, METH_VARARGS,
+    {"get_version_text", PyAudio_GetPortAudioVersionText, METH_VARARGS,
      "PortAudio version text"},
 
     // host_api.h
-    {"get_host_api_count", GetHostApiCount, METH_VARARGS,
+    {"get_host_api_count", PyAudio_GetHostApiCount, METH_VARARGS,
      "Returns the number of Host APIs"},
 
-    {"get_default_host_api", GetDefaultHostApi, METH_VARARGS,
+    {"get_default_host_api", PyAudio_GetDefaultHostApi, METH_VARARGS,
      "Returns the default Host API index"},
 
-    {"host_api_type_id_to_host_api_index", HostApiTypeIdToHostApiIndex,
+    {"host_api_type_id_to_host_api_index", PyAudio_HostApiTypeIdToHostApiIndex,
      METH_VARARGS,
      "Returns the Host API index for given a PortAudio Host API Type ID"},
 
-    {"host_api_device_index_to_device_index", HostApiDeviceIndexToDeviceIndex,
-     METH_VARARGS,
+    {"host_api_device_index_to_device_index",
+     PyAudio_HostApiDeviceIndexToDeviceIndex, METH_VARARGS,
      "Returns a Host API-specific device index to PortAudio device index"},
 
-    {"get_host_api_info", GetHostApiInfo, METH_VARARGS,
+    {"get_host_api_info", PyAudio_GetHostApiInfo, METH_VARARGS,
      "Returns an object with information about the Host API"},
 
     // device_api.h
-    {"get_device_count", GetDeviceCount, METH_VARARGS,
+    {"get_device_count", PyAudio_GetDeviceCount, METH_VARARGS,
      "Returns the number of available devices"},
 
-    {"get_default_input_device", GetDefaultInputDevice, METH_VARARGS,
+    {"get_default_input_device", PyAudio_GetDefaultInputDevice, METH_VARARGS,
      "Returns the default input device index"},
 
-    {"get_default_output_device", GetDefaultOutputDevice, METH_VARARGS,
+    {"get_default_output_device", PyAudio_GetDefaultOutputDevice, METH_VARARGS,
      "Returns the default output device index"},
 
-    {"get_device_info", GetDeviceInfo, METH_VARARGS,
+    {"get_device_info", PyAudio_GetDeviceInfo, METH_VARARGS,
      "Returns an object with device properties"},
 
     // stream.h
-    {"get_stream_time", GetStreamTime, METH_VARARGS,
+    {"get_stream_time", PyAudio_GetStreamTime, METH_VARARGS,
      "Returns the number of seconds for the stream. See PortAudio docs for "
      "details."},
 
-    {"get_stream_cpu_load", GetStreamCpuLoad, METH_VARARGS,
+    {"get_stream_cpu_load", PyAudio_GetStreamCpuLoad, METH_VARARGS,
      "Returns the stream's CPU load (always 0 for blocking mode)"},
 
     // stream_lifecycle.h (and stream.h)
-    {"open", (PyCFunction)OpenStream, METH_VARARGS | METH_KEYWORDS,
+    {"open", (PyCFunction)PyAudio_OpenStream, METH_VARARGS | METH_KEYWORDS,
      "Opens a PortAudio stream"},
 
-    {"close", CloseStream, METH_VARARGS, "Closes a PortAudio stream"},
+    {"close", PyAudio_CloseStream, METH_VARARGS, "Closes a PortAudio stream"},
 
-    {"start_stream", StartStream, METH_VARARGS, "Starts the stream"},
+    {"start_stream", PyAudio_StartStream, METH_VARARGS, "Starts the stream"},
 
-    {"stop_stream", StopStream, METH_VARARGS, "Stops (pauses) the stream"},
+    {"stop_stream", PyAudio_StopStream, METH_VARARGS,
+     "Stops (pauses) the stream"},
 
-    {"abort_stream", AbortStream, METH_VARARGS, "Aborts the stream"},
+    {"abort_stream", PyAudio_AbortStream, METH_VARARGS, "Aborts the stream"},
 
-    {"is_stream_stopped", IsStreamStopped, METH_VARARGS,
+    {"is_stream_stopped", PyAudio_IsStreamStopped, METH_VARARGS,
      "Returns whether the stream is stopped"},
 
-    {"is_stream_active", IsStreamActive, METH_VARARGS,
+    {"is_stream_active", PyAudio_IsStreamActive, METH_VARARGS,
      "Returns whether the stream is active"},
 
     // stream_io.h (and stream.h)
-    {"write_stream", WriteStream, METH_VARARGS, "Write samples to stream"},
+    {"write_stream", PyAudio_WriteStream, METH_VARARGS,
+     "Write samples to stream"},
 
-    {"read_stream", ReadStream, METH_VARARGS, "Read samples from stream"},
+    {"read_stream", PyAudio_ReadStream, METH_VARARGS,
+     "Read samples from stream"},
 
-    {"get_stream_write_available", GetStreamWriteAvailable, METH_VARARGS,
+    {"get_stream_write_available", PyAudio_GetStreamWriteAvailable,
+     METH_VARARGS,
      "Returns the number of frames that can be written without waiting"},
 
-    {"get_stream_read_available", GetStreamReadAvailable, METH_VARARGS,
+    {"get_stream_read_available", PyAudio_GetStreamReadAvailable, METH_VARARGS,
      "Returns the number of frames that can be read without waiting"},
 
     {NULL, NULL, 0, NULL}};

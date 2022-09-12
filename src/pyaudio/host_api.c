@@ -117,7 +117,7 @@ PyTypeObject PyAudioHostApiInfoType = {
 // Public Functions
 
 // Creates and returns a PyAudioHostApiInfo (PyAudioHostApiInfoType).
-PyObject *GetHostApiInfo(PyObject *self, PyObject *args) {
+PyObject *PyAudio_GetHostApiInfo(PyObject *self, PyObject *args) {
   PaHostApiIndex index;
   if (!PyArg_ParseTuple(args, "i", &index)) {
     return NULL;
@@ -136,7 +136,7 @@ PyObject *GetHostApiInfo(PyObject *self, PyObject *args) {
   return (PyObject *)py_hostapi_info;
 }
 
-PyObject *GetHostApiCount(PyObject *self, PyObject *args) {
+PyObject *PyAudio_GetHostApiCount(PyObject *self, PyObject *args) {
   PaHostApiIndex count;
 
   if (!PyArg_ParseTuple(args, "")) {
@@ -160,7 +160,7 @@ PyObject *GetHostApiCount(PyObject *self, PyObject *args) {
   return PyLong_FromLong(count);
 }
 
-PyObject *GetDefaultHostApi(PyObject *self, PyObject *args) {
+PyObject *PyAudio_GetDefaultHostApi(PyObject *self, PyObject *args) {
   PaHostApiIndex index;
 
   if (!PyArg_ParseTuple(args, "")) {
@@ -184,7 +184,7 @@ PyObject *GetDefaultHostApi(PyObject *self, PyObject *args) {
   return PyLong_FromLong(index);
 }
 
-PyObject *HostApiTypeIdToHostApiIndex(PyObject *self, PyObject *args) {
+PyObject *PyAudio_HostApiTypeIdToHostApiIndex(PyObject *self, PyObject *args) {
   PaHostApiTypeId typeid;
   PaHostApiIndex index;
 
@@ -209,7 +209,8 @@ PyObject *HostApiTypeIdToHostApiIndex(PyObject *self, PyObject *args) {
   return PyLong_FromLong(index);
 }
 
-PyObject *HostApiDeviceIndexToDeviceIndex(PyObject *self, PyObject *args) {
+PyObject *PyAudio_HostApiDeviceIndexToDeviceIndex(PyObject *self,
+                                                  PyObject *args) {
   PaHostApiIndex apiIndex;
   int hostApiDeviceindex;
   PaDeviceIndex devIndex;

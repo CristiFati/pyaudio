@@ -9,12 +9,12 @@
 #include "portaudio.h"
 
 static void dealloc(PyAudioStream *self) {
-  cleanup_stream(self);
+  PyAudioStream_Cleanup(self);
   Py_TYPE(self)->tp_free((PyObject *)self);
 }
 
 static PyObject *get_structVersion(PyAudioStream *self, void *closure) {
-  if (!is_stream_open(self)) {
+  if (!PyAudioStream_IsOpen(self)) {
     PyErr_SetObject(PyExc_IOError,
                     Py_BuildValue("(i,s)", paBadStreamPtr, "Stream closed"));
     return NULL;
@@ -33,7 +33,7 @@ static PyObject *get_structVersion(PyAudioStream *self, void *closure) {
 }
 
 static PyObject *get_inputLatency(PyAudioStream *self, void *closure) {
-  if (!is_stream_open(self)) {
+  if (!PyAudioStream_IsOpen(self)) {
     PyErr_SetObject(PyExc_IOError,
                     Py_BuildValue("(i,s)", paBadStreamPtr, "Stream closed"));
     return NULL;
@@ -52,7 +52,7 @@ static PyObject *get_inputLatency(PyAudioStream *self, void *closure) {
 }
 
 static PyObject *get_outputLatency(PyAudioStream *self, void *closure) {
-  if (!is_stream_open(self)) {
+  if (!PyAudioStream_IsOpen(self)) {
     PyErr_SetObject(PyExc_IOError,
                     Py_BuildValue("(i,s)", paBadStreamPtr, "Stream closed"));
     return NULL;
@@ -71,7 +71,7 @@ static PyObject *get_outputLatency(PyAudioStream *self, void *closure) {
 }
 
 static PyObject *get_sampleRate(PyAudioStream *self, void *closure) {
-  if (!is_stream_open(self)) {
+  if (!PyAudioStream_IsOpen(self)) {
     PyErr_SetObject(PyExc_IOError,
                     Py_BuildValue("(i,s)", paBadStreamPtr, "Stream closed"));
     return NULL;
@@ -124,11 +124,11 @@ PyTypeObject PyAudioStreamType = {
     .tp_new = PyType_GenericNew,
 };
 
-int is_stream_open(PyAudioStream *stream) {
+int PyAudioStream_IsOpen(PyAudioStream *stream) {
   return (stream) && (stream->context.stream != NULL);
 }
 
-PyAudioStream *create_stream(void) {
+PyAudioStream *PyAudioStream_Create(void) {
   PyAudioStream *stream =
       (PyAudioStream *)PyObject_New(PyAudioStream, &PyAudioStreamType);
   if (!stream) {
@@ -138,7 +138,7 @@ PyAudioStream *create_stream(void) {
   return stream;
 }
 
-void cleanup_stream(PyAudioStream *stream) {
+void PyAudioStream_Cleanup(PyAudioStream *stream) {
   // Note that this function may be called multiple times on the same stream.
   // For example, stream_lifecycle.c may call this when the user closes the
   // stream, and Python may call it again during deallocation, i.e., when the
@@ -161,7 +161,7 @@ void cleanup_stream(PyAudioStream *stream) {
   memset(&(stream->context), 0, sizeof(struct StreamContext));
 }
 
-PyObject *GetStreamTime(PyObject *self, PyObject *args) {
+PyObject *PyAudio_GetStreamTime(PyObject *self, PyObject *args) {
   double time;
 
   PyObject *stream_arg;
@@ -170,7 +170,7 @@ PyObject *GetStreamTime(PyObject *self, PyObject *args) {
   }
 
   PyAudioStream *stream = (PyAudioStream *)stream_arg;
-  if (!is_stream_open(stream)) {
+  if (!PyAudioStream_IsOpen(stream)) {
     PyErr_SetObject(PyExc_IOError,
                     Py_BuildValue("(i,s)", paBadStreamPtr, "Stream closed"));
     return NULL;
@@ -183,7 +183,7 @@ PyObject *GetStreamTime(PyObject *self, PyObject *args) {
   // clang-format on
 
   if (time == 0) {
-    cleanup_stream(stream);
+    PyAudioStream_Cleanup(stream);
     PyErr_SetObject(PyExc_IOError,
                     Py_BuildValue("(i,s)", paInternalError, "Internal Error"));
     return NULL;
@@ -192,7 +192,7 @@ PyObject *GetStreamTime(PyObject *self, PyObject *args) {
   return PyFloat_FromDouble(time);
 }
 
-PyObject *GetStreamCpuLoad(PyObject *self, PyObject *args) {
+PyObject *PyAudio_GetStreamCpuLoad(PyObject *self, PyObject *args) {
   double cpuload;
 
   PyObject *stream_arg;
@@ -201,7 +201,7 @@ PyObject *GetStreamCpuLoad(PyObject *self, PyObject *args) {
   }
 
   PyAudioStream *stream = (PyAudioStream *)stream_arg;
-  if (!is_stream_open(stream)) {
+  if (!PyAudioStream_IsOpen(stream)) {
     PyErr_SetObject(PyExc_IOError,
                     Py_BuildValue("(i,s)", paBadStreamPtr, "Stream closed"));
     return NULL;

@@ -8,7 +8,7 @@
 #include "Python.h"
 #include "portaudio.h"
 
-PyObject *Initialize(PyObject *self, PyObject *args) {
+PyObject *PyAudio_Initialize(PyObject *self, PyObject *args) {
   int err;
 
   // clang-format off
@@ -39,7 +39,7 @@ PyObject *Initialize(PyObject *self, PyObject *args) {
   return Py_None;
 }
 
-PyObject *Terminate(PyObject *self, PyObject *args) {
+PyObject *PyAudio_Terminate(PyObject *self, PyObject *args) {
   // clang-format off
   Py_BEGIN_ALLOW_THREADS
   Pa_Terminate();

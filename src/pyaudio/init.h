@@ -6,7 +6,7 @@
 #endif
 #include "Python.h"
 
-PyObject *Initialize(PyObject *self, PyObject *args);
-PyObject *Terminate(PyObject *self, PyObject *args);
+PyObject *PyAudio_Initialize(PyObject *self, PyObject *args);
+PyObject *PyAudio_Terminate(PyObject *self, PyObject *args);
 
 #endif  // INIT_H

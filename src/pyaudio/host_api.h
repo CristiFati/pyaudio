@@ -12,10 +12,11 @@
 extern PyTypeObject PyAudioHostApiInfoType;
 
 // Returns a PyAudioHostApiInfoType object
-PyObject *GetHostApiInfo(PyObject *self, PyObject *args);
-PyObject *GetHostApiCount(PyObject *self, PyObject *args);
-PyObject *GetDefaultHostApi(PyObject *self, PyObject *args);
-PyObject *HostApiTypeIdToHostApiIndex(PyObject *self, PyObject *args);
-PyObject *HostApiDeviceIndexToDeviceIndex(PyObject *self, PyObject *args);
+PyObject *PyAudio_GetHostApiInfo(PyObject *self, PyObject *args);
+PyObject *PyAudio_GetHostApiCount(PyObject *self, PyObject *args);
+PyObject *PyAudio_GetDefaultHostApi(PyObject *self, PyObject *args);
+PyObject *PyAudio_HostApiTypeIdToHostApiIndex(PyObject *self, PyObject *args);
+PyObject *PyAudio_HostApiDeviceIndexToDeviceIndex(PyObject *self,
+                                                  PyObject *args);
 
 #endif  // PYAUDIO_HOST_API_H_

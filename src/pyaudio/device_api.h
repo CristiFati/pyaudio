@@ -10,9 +10,9 @@
 extern PyTypeObject PyAudioDeviceInfoType;
 
 // Returns a PyAudioDeviceInfoType object
-PyObject *GetDeviceInfo(PyObject *self, PyObject *args);
-PyObject *GetDeviceCount(PyObject *self, PyObject *args);
-PyObject *GetDefaultInputDevice(PyObject *self, PyObject *args);
-PyObject *GetDefaultOutputDevice(PyObject *self, PyObject *args);
+PyObject *PyAudio_GetDeviceInfo(PyObject *self, PyObject *args);
+PyObject *PyAudio_GetDeviceCount(PyObject *self, PyObject *args);
+PyObject *PyAudio_GetDefaultInputDevice(PyObject *self, PyObject *args);
+PyObject *PyAudio_GetDefaultOutputDevice(PyObject *self, PyObject *args);
 
 #endif  // PYAUDIO_DEVICE_API_H_

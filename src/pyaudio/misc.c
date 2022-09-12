@@ -6,7 +6,7 @@
 #include "Python.h"
 #include "portaudio.h"
 
-PyObject *GetVersion(PyObject *self, PyObject *args) {
+PyObject *PyAudio_GetPortAudioVersion(PyObject *self, PyObject *args) {
   if (!PyArg_ParseTuple(args, "")) {
     return NULL;
   }
@@ -14,7 +14,7 @@ PyObject *GetVersion(PyObject *self, PyObject *args) {
   return PyLong_FromLong(Pa_GetVersion());
 }
 
-PyObject *GetVersionText(PyObject *self, PyObject *args) {
+PyObject *PyAudio_GetPortAudioVersionText(PyObject *self, PyObject *args) {
   if (!PyArg_ParseTuple(args, "")) {
     return NULL;
   }
@@ -22,7 +22,7 @@ PyObject *GetVersionText(PyObject *self, PyObject *args) {
   return PyUnicode_FromString(Pa_GetVersionText());
 }
 
-PyObject *GetSampleSize(PyObject *self, PyObject *args) {
+PyObject *PyAudio_GetSampleSize(PyObject *self, PyObject *args) {
   PaSampleFormat format;
   int size_in_bytes;
 
@@ -42,7 +42,8 @@ PyObject *GetSampleSize(PyObject *self, PyObject *args) {
   return PyLong_FromLong(size_in_bytes);
 }
 
-PyObject *IsFormatSupported(PyObject *self, PyObject *args, PyObject *kwargs) {
+PyObject *PyAudio_IsFormatSupported(PyObject *self, PyObject *args,
+                                    PyObject *kwargs) {
   // clang-format off
   static char *kwlist[] = {
     "sample_rate",

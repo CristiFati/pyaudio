@@ -6,12 +6,12 @@
 #endif
 #include "Python.h"
 
-PyObject *OpenStream(PyObject *self, PyObject *args, PyObject *kwargs);
-PyObject *CloseStream(PyObject *self, PyObject *args);
-PyObject *StartStream(PyObject *self, PyObject *args);
-PyObject *StopStream(PyObject *self, PyObject *args);
-PyObject *AbortStream(PyObject *self, PyObject *args);
-PyObject *IsStreamStopped(PyObject *self, PyObject *args);
-PyObject *IsStreamActive(PyObject *self, PyObject *args);
+PyObject *PyAudio_OpenStream(PyObject *self, PyObject *args, PyObject *kwargs);
+PyObject *PyAudio_CloseStream(PyObject *self, PyObject *args);
+PyObject *PyAudio_StartStream(PyObject *self, PyObject *args);
+PyObject *PyAudio_StopStream(PyObject *self, PyObject *args);
+PyObject *PyAudio_AbortStream(PyObject *self, PyObject *args);
+PyObject *PyAudio_IsStreamStopped(PyObject *self, PyObject *args);
+PyObject *PyAudio_IsStreamActive(PyObject *self, PyObject *args);
 
 #endif  // STREAM_LIFECYCLE_H_

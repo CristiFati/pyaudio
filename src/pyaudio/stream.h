@@ -31,16 +31,16 @@ extern PyTypeObject PyAudioStreamType;
 
 // Creates a PyAudioStream and zeros out the fields. Returns NULL if memory
 // allocation fails.
-PyAudioStream *create_stream(void);
+PyAudioStream *PyAudioStream_Create(void);
 // Closes the PortAudio stream (if open) and garbage collects the fields within
 // a PyAudioStream. May be called multiple times on the same stream.
-void cleanup_stream(PyAudioStream *stream);
+void PyAudioStream_Cleanup(PyAudioStream *stream);
 // Returns whether the stream is open.
-int is_stream_open(PyAudioStream *stream);
+int PyAudioStream_IsOpen(PyAudioStream *stream);
 
-// Public exported functions.
+// Exported functions.
 
-PyObject *GetStreamTime(PyObject *self, PyObject *args);
-PyObject *GetStreamCpuLoad(PyObject *self, PyObject *args);
+PyObject *PyAudio_GetStreamTime(PyObject *self, PyObject *args);
+PyObject *PyAudio_GetStreamCpuLoad(PyObject *self, PyObject *args);
 
 #endif  // STREAM_H_
