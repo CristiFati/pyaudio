@@ -32,7 +32,7 @@ import platform
 from setuptools import setup, Extension
 import sys
 
-__version__ = "0.2.12"
+__version__ = "0.2.13"
 
 # setup.py/setuptools will try to locate and link dynamically against portaudio,
 # except on Windows. On Windows, setup.py will attempt to statically link in

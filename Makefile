@@ -2,7 +2,7 @@
 
 .PHONY: docs clean build
 
-VERSION := 0.2.12
+VERSION := 0.2.13
 PYTHON ?= python3
 SPHINX ?= sphinx-build
 DOCS_OUTPUT = docs/

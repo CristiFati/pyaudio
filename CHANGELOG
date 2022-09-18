@@ -1,3 +1,32 @@
+2022-12-26  Hubert Pham  <hubert@mit.edu>
+
+  PyAudio 0.2.13
+
+  * Move pyaudio.Stream to pyaudio.PyAudio.Stream.
+    The pyaudio.Stream class is now pyaudio.PyAudio.Stream, nested under the
+    existing pyaudio.PyAudio class. This should not affect existing code, as
+    directly accessing the module-level pyaudio.Stream class has always been
+    unsupported (use PyAudio.open instead). Accessing pyaudio.Stream
+    directly is deprecated and will raise a DeprecationWarning.
+
+  * Deprecate PaMacCoreStreamInfo's get_channel_map() and get_flags() methods.
+    Use the channel_map and flags properties, respectively, instead. Also
+    deprecates internal method _get_host_api_stream_object. Calling
+    deprecated methods will raise a DeprecationWarning.
+
+  * Package PyAudio as an actual package (directory).
+    Previously, the library deployed a single pyaudio.py file and a C
+    extension module to the root of site-packages. Now, the library deploys
+    a Python package.
+
+  * Add default shared library path for Homebrew installations on Apple Silicon.
+
+  * Refactor and cleanup.
+    - Refactor C extension for better maintainability.
+    - Add more unit tests.
+    - Update and modernize examples directory.
+    - Improve C and python style conformance, plus many cosmetic updates.
+
 2022-07-18  Hubert Pham  <hubert@mit.edu>
 
   PyAudio 0.2.12
