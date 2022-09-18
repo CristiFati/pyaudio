@@ -3,3 +3,5 @@ include Makefile CHANGELOG INSTALL MANIFEST.in
 recursive-include examples *.py
 recursive-include tests *.py
 graft sphinx
+prune **/__pycache__
+prune **/.mypy_cache
