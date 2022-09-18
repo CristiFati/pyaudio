@@ -177,7 +177,7 @@ init_portaudio(void)
     return ERROR_INIT;
   }
 
-#ifdef MACOSX
+#ifdef MACOS
   if (PyType_Ready(&PyAudioMacCoreStreamInfoType) < 0) {
     return ERROR_INIT;
   }
@@ -192,7 +192,7 @@ init_portaudio(void)
   Py_INCREF(&PyAudioStreamType);
   Py_INCREF(&PyAudioDeviceInfoType);
   Py_INCREF(&PyAudioHostApiInfoType);
-#ifdef MACOSX
+#ifdef MACOS
   Py_INCREF(&PyAudioMacCoreStreamInfoType);
   PyModule_AddObject(m, "paMacCoreStreamInfo",
                      (PyObject *)&PyAudioMacCoreStreamInfoType);
@@ -281,7 +281,7 @@ init_portaudio(void)
   PyModule_AddIntConstant(m, "paFramesPerBufferUnspecified",
                           paFramesPerBufferUnspecified);
 
-#ifdef MACOSX
+#ifdef MACOS
   PyModule_AddIntConstant(m, "paMacCoreChangeDeviceParameters",
                           paMacCoreChangeDeviceParameters);
   PyModule_AddIntConstant(m, "paMacCoreFailIfConversionRequired",

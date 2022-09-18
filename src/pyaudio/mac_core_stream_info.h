@@ -3,7 +3,7 @@
 #ifndef MAC_CORE_STREAM_INFO_H_
 #define MAC_CORE_STREAM_INFO_H_
 
-#ifdef MACOSX
+#ifdef MACOS
 
 #ifndef PY_SSIZE_T_CLEAN
 #define PY_SSIZE_T_CLEAN
@@ -24,5 +24,5 @@ typedef struct {
 
 extern PyTypeObject PyAudioMacCoreStreamInfoType;
 
-#endif  // MACOSX
+#endif  // MACOS
 #endif  // MAC_CORE_STREAM_INFO_H_

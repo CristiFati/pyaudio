@@ -70,7 +70,7 @@ def setup_extension():
         # Support only dynamic linking with portaudio, since the supported path
         # is to install portaudio using a package manager (e.g., Homebrew).
         # TODO: let users pass in location of portaudio library on command line.
-        defines += [('MACOSX', '1')]
+        defines += [('MACOS', '1')]
 
         include_dirs += [
             '/usr/local/include', '/usr/include', '/opt/homebrew/include'

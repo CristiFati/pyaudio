@@ -39,7 +39,7 @@ PyObject *PyAudio_OpenStream(PyObject *self, PyObject *args, PyObject *kwargs) {
                            "stream_callback",
                            NULL};
 
-#ifdef MACOSX
+#ifdef MACOS
   PyAudioMacCoreStreamInfo *input_host_specific_stream_info = NULL;
   PyAudioMacCoreStreamInfo *output_host_specific_stream_info = NULL;
 #else
@@ -55,7 +55,7 @@ PyObject *PyAudio_OpenStream(PyObject *self, PyObject *args, PyObject *kwargs) {
 
   // clang-format off
   if (!PyArg_ParseTupleAndKeywords(args, kwargs,
-#ifdef MACOSX
+#ifdef MACOS
                                    "iik|iiOOiO!O!O",
 #else
                                    "iik|iiOOiOOO",
@@ -66,11 +66,11 @@ PyObject *PyAudio_OpenStream(PyObject *self, PyObject *args, PyObject *kwargs) {
                                    &input_device_index_arg,
                                    &output_device_index_arg,
                                    &frames_per_buffer,
-#ifdef MACOSX
+#ifdef MACOS
                                    &PyAudioMacCoreStreamInfoType,
 #endif
                                    &input_host_specific_stream_info,
-#ifdef MACOSX
+#ifdef MACOS
                                    &PyAudioMacCoreStreamInfoType,
 #endif
                                    &output_host_specific_stream_info,
@@ -164,7 +164,7 @@ PyObject *PyAudio_OpenStream(PyObject *self, PyObject *args, PyObject *kwargs) {
     output_parameters.suggestedLatency =
         Pa_GetDeviceInfo(output_parameters.device)->defaultLowOutputLatency;
     output_parameters.hostApiSpecificStreamInfo = NULL;
-#ifdef MACOSX
+#ifdef MACOS
     if (output_host_specific_stream_info) {
       output_parameters.hostApiSpecificStreamInfo =
           &output_host_specific_stream_info->stream_info;
@@ -194,7 +194,7 @@ PyObject *PyAudio_OpenStream(PyObject *self, PyObject *args, PyObject *kwargs) {
     input_parameters.suggestedLatency =
         Pa_GetDeviceInfo(input_parameters.device)->defaultLowInputLatency;
     input_parameters.hostApiSpecificStreamInfo = NULL;
-#ifdef MACOSX
+#ifdef MACOS
     if (input_host_specific_stream_info) {
       input_parameters.hostApiSpecificStreamInfo =
           &input_host_specific_stream_info->stream_info;

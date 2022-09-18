@@ -1,4 +1,4 @@
-#ifdef MACOSX
+#ifdef MACOS
 
 #include "mac_core_stream_info.h"
 
@@ -141,4 +141,4 @@ PyTypeObject PyAudioMacCoreStreamInfoType = {
     .tp_new = PyType_GenericNew,
 };
 
-#endif  // MACOSX
+#endif  // MACOS
