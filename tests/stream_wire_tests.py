@@ -23,6 +23,7 @@ import sys
 import numpy
 
 import pyaudio
+import alsa_utils
 
 # To skip tests requiring hardware, set this environment variable:
 SKIP_HW_TESTS = 'PYAUDIO_SKIP_HW_TESTS' in os.environ
@@ -30,7 +31,10 @@ SKIP_HW_TESTS = 'PYAUDIO_SKIP_HW_TESTS' in os.environ
 # variable. If SKIP_HW_TESTS is set, this variable has no effect.
 ENABLE_LOOPBACK_TESTS = 'PYAUDIO_ENABLE_LOOPBACK_TESTS' in os.environ
 
-DUMP_CAPTURE=False
+DUMP_CAPTURE = False
+
+setUpModule = alsa_utils.disable_error_handler_output
+tearDownModule = alsa_utils.disable_error_handler_output
 
 
 def _create_reference_signal(freqs, sampling_rate, width, duration):

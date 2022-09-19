@@ -4,9 +4,14 @@ import time
 import unittest
 
 import pyaudio
+import alsa_utils
 
 # To skip tests requiring hardware, set this environment variable:
 SKIP_HW_TESTS = 'PYAUDIO_SKIP_HW_TESTS' in os.environ
+
+setUpModule = alsa_utils.disable_error_handler_output
+tearDownModule = alsa_utils.disable_error_handler_output
+
 
 class PyAudioErrorTests(unittest.TestCase):
     def setUp(self):

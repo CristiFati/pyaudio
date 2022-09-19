@@ -9,12 +9,16 @@ import sys
 import numpy
 
 import pyaudio
+import alsa_utils
 
 # To skip tests requiring hardware, set this environment variable:
 SKIP_HW_TESTS = 'PYAUDIO_SKIP_HW_TESTS' in os.environ
 # If unset, defaults to default devices.
 INPUT_DEVICE_INDEX = os.environ.get('PYAUDIO_INPUT_DEVICE_INDEX', None)
 OUTPUT_DEVICE_INDEX = os.environ.get('PYAUDIO_OUTPUT_DEVICE_INDEX', None)
+
+setUpModule = alsa_utils.disable_error_handler_output
+tearDownModule = alsa_utils.disable_error_handler_output
 
 
 class StreamTests(unittest.TestCase):

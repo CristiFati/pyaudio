@@ -1,7 +1,12 @@
 """PyAudio misc tests."""
 
 import unittest
+
 import pyaudio
+import alsa_utils
+
+setUpModule = alsa_utils.disable_error_handler_output
+tearDownModule = alsa_utils.disable_error_handler_output
 
 
 class MiscTests(unittest.TestCase):
