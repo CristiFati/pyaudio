@@ -43,9 +43,11 @@ def _create_reference_signal(freqs, sampling_rate, width, duration):
     max_amp = float(2**(width * 8 - 1) - 1)
     avg_amp = max_amp / len(freqs)
     return [
-        int(sum(avg_amp * math.sin(2*math.pi*freq*(k/float(sampling_rate)))
-            for freq in freqs))
-        for k in range(total_frames)]
+        int(
+            sum(avg_amp * math.sin(2 * math.pi * freq *
+                                   (k / float(sampling_rate)))
+                for freq in freqs)) for k in range(total_frames)
+    ]
 
 
 def _signal_to_chunks(frame_data, frames_per_chunk, channels):
@@ -56,9 +58,11 @@ def _signal_to_chunks(frame_data, frames_per_chunk, channels):
     """
     frames = [struct.pack('h', x) * channels for x in frame_data]
     # Chop up frames into chunks
-    return [b''.join(chunk_frames) for chunk_frames in
-            tuple(frames[i:i+frames_per_chunk]
-                  for i in range(0, len(frames), frames_per_chunk))]
+    return [
+        b''.join(chunk_frames) for chunk_frames in tuple(
+            frames[i:i + frames_per_chunk]
+            for i in range(0, len(frames), frames_per_chunk))
+    ]
 
 
 def _pcm16_to_numpy(bytestring):
@@ -77,6 +81,7 @@ def _write_wav(filename, data, width, channels, rate):
 
 
 class StreamWireTests(unittest.TestCase):
+
     def setUp(self):
         self.p = pyaudio.PyAudio()
         self.loopback_input_idx = None
@@ -85,12 +90,26 @@ class StreamWireTests(unittest.TestCase):
         if ENABLE_LOOPBACK_TESTS:
             (self.loopback_input_idx,
              self.loopback_output_idx) = self._get_audio_loopback()
-            self.assertTrue(
-                self.loopback_input_idx is None
-                or self.loopback_input_idx >= 0, "No loopback device found")
-            self.assertTrue(
-                self.loopback_output_idx is None
-                or self.loopback_output_idx >= 0, "No loopback device found")
+            if not (self.loopback_input_idx is None
+                    or self.loopback_input_idx >= 0):
+                raise OSError("No loopback device found")
+            if not (self.loopback_output_idx is None
+                    or self.loopback_output_idx >= 0):
+                raise OSError("No loopback device found")
+
+        # Different platforms/devices support different number of channels for
+        # input streams. Inspect the desired input device and use the maximum
+        # number of channels.
+        try:
+            input_device_info = self.p.get_host_api_info_by_index(
+                self.loopback_input_idx) if self.loopback_input_idx else (
+                    self.p.get_default_input_device_info())
+        except OSError as err:
+            raise OSError(
+                f"Invalid device index {self.loopback_input_idx}") from err
+        self.input_channels = input_device_info['maxInputChannels']
+        if self.input_channels < 1:
+            raise OSError("Invalid number of input channels for device")
 
     def tearDown(self):
         self.p.terminate()
@@ -134,7 +153,7 @@ class StreamWireTests(unittest.TestCase):
         """Test blocking-based record and playback."""
         rate = 44100 # frames per second
         width = 2    # bytes per sample
-        channels = 2
+        channels = self.input_channels
         # Blocking-mode might add some initial choppiness on some
         # platforms/loopback devices, so set a longer duration.
         duration = 3 # seconds
@@ -196,7 +215,7 @@ class StreamWireTests(unittest.TestCase):
         """Test callback-based record and playback."""
         rate = 44100 # frames per second
         width = 2    # bytes per sample
-        channels = 2
+        channels = self.input_channels
         duration = 1 # second
         frames_per_chunk = 1024
 

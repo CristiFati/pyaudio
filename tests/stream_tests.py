@@ -4,9 +4,6 @@ import os
 import time
 import threading
 import unittest
-import sys
-
-import numpy
 
 import pyaudio
 import alsa_utils
@@ -25,8 +22,21 @@ class StreamTests(unittest.TestCase):
 
     def setUp(self):
         self.p = pyaudio.PyAudio()
-        self.input_device = INPUT_DEVICE_INDEX
-        self.output_device = OUTPUT_DEVICE_INDEX
+        self.input_device = INPUT_DEVICE_INDEX and int(INPUT_DEVICE_INDEX)
+        self.output_device = OUTPUT_DEVICE_INDEX and int(OUTPUT_DEVICE_INDEX)
+
+        # Different platforms/devices support different number of channels for
+        # input streams. Inspect the desired input device and use the maximum
+        # number of channels.
+        try:
+            input_device_info = self.p.get_host_api_info_by_index(
+                self.input_device
+            ) if self.input_device else self.p.get_default_input_device_info()
+        except OSError as err:
+            raise OSError(f"Invalid device index {self.input_device}") from err
+        self.input_channels = input_device_info['maxInputChannels']
+        if self.input_channels < 1:
+            raise OSError("Invalid number of input channels for device")
 
     def tearDown(self):
         self.p.terminate()
@@ -87,7 +97,7 @@ class StreamTests(unittest.TestCase):
     def test_input_start_stop_stream_properties(self):
         in_stream = self.p.open(
             format=self.p.get_format_from_width(2),
-            channels=2,
+            channels=self.input_channels,
             rate=44100,
             input=True)
 
@@ -182,10 +192,9 @@ class StreamTests(unittest.TestCase):
     @unittest.skipIf(SKIP_HW_TESTS, 'Hardware device required.')
     def test_input_blocking(self):
         width = 2
-        channels = 2
         in_stream = self.p.open(
             format=self.p.get_format_from_width(width),
-            channels=channels,
+            channels=self.input_channels,
             rate=44100,
             input=True)
         samples = in_stream.read(512)
@@ -194,7 +203,7 @@ class StreamTests(unittest.TestCase):
             in_stream.write(b'\0' * 512)
 
         in_stream.close()
-        self.assertEqual(len(samples), 512 * width * channels)
+        self.assertEqual(len(samples), 512 * width * self.input_channels)
 
     @unittest.skipIf(SKIP_HW_TESTS, 'Sound hardware required.')
     def test_return_none_callback(self):
@@ -264,7 +273,7 @@ class StreamTests(unittest.TestCase):
 
         in_stream = self.p.open(
             format=self.p.get_format_from_width(2),
-            channels=2,
+            channels=self.input_channels,
             rate=44100,
             input=True,
             start=False,
@@ -287,9 +296,8 @@ class StreamTests(unittest.TestCase):
     @unittest.skipIf(SKIP_HW_TESTS, 'Sound hardware required.')
     def test_stream_state_gil(self):
         """Ensure no deadlock between Pa_IsStream{Active,Stopped} and GIL."""
-        rate = 44100 # frames per second
-        width = 2    # bytes per sample
-        channels = 2
+        rate = 44100  # frames per second
+        width = 2  # bytes per sample
         frames_per_chunk = 1024
 
         def out_callback(_, frame_count, time_info, status):
@@ -302,7 +310,7 @@ class StreamTests(unittest.TestCase):
 
         in_stream = self.p.open(
             format=self.p.get_format_from_width(width),
-            channels=channels,
+            channels=self.input_channels,
             rate=rate,
             input=True,
             start=False,
@@ -311,7 +319,7 @@ class StreamTests(unittest.TestCase):
             stream_callback=in_callback)
         out_stream = self.p.open(
             format=self.p.get_format_from_width(width),
-            channels=channels,
+            channels=2,
             rate=rate,
             output=True,
             start=False,
@@ -349,7 +357,6 @@ class StreamTests(unittest.TestCase):
         """Ensure no deadlock between PA_GetStreamTime and GIL."""
         rate = 44100 # frames per second
         width = 2    # bytes per sample
-        channels = 2
         frames_per_chunk = 1024
 
         def out_callback(_, frame_count, time_info, status):
@@ -362,7 +369,7 @@ class StreamTests(unittest.TestCase):
 
         in_stream = self.p.open(
             format=self.p.get_format_from_width(width),
-            channels=channels,
+            channels=self.input_channels,
             rate=rate,
             input=True,
             start=False,
@@ -371,7 +378,7 @@ class StreamTests(unittest.TestCase):
             stream_callback=in_callback)
         out_stream = self.p.open(
             format=self.p.get_format_from_width(width),
-            channels=channels,
+            channels=2,
             rate=rate,
             output=True,
             start=False,
@@ -404,7 +411,6 @@ class StreamTests(unittest.TestCase):
         """Ensure no deadlock between Pa_GetStreamCpuLoad and GIL."""
         rate = 44100 # frames per second
         width = 2    # bytes per sample
-        channels = 2
         frames_per_chunk = 1024
 
         def out_callback(_, frame_count, time_info, status):
@@ -417,7 +423,7 @@ class StreamTests(unittest.TestCase):
 
         in_stream = self.p.open(
             format=self.p.get_format_from_width(width),
-            channels=channels,
+            channels=self.input_channels,
             rate=rate,
             input=True,
             start=False,
@@ -426,7 +432,7 @@ class StreamTests(unittest.TestCase):
             stream_callback=in_callback)
         out_stream = self.p.open(
             format=self.p.get_format_from_width(width),
-            channels=channels,
+            channels=2,
             rate=rate,
             output=True,
             start=False,
@@ -458,7 +464,6 @@ class StreamTests(unittest.TestCase):
         """Ensure no deadlock between Pa_GetStreamWriteAvailable and GIL."""
         rate = 44100 # frames per second
         width = 2    # bytes per sample
-        channels = 2
         frames_per_chunk = 1024
 
         def in_callback(in_data, frame_count, time_info, status):
@@ -468,7 +473,7 @@ class StreamTests(unittest.TestCase):
 
         in_stream = self.p.open(
             format=self.p.get_format_from_width(width),
-            channels=channels,
+            channels=self.input_channels,
             rate=rate,
             input=True,
             start=False,
@@ -477,7 +482,7 @@ class StreamTests(unittest.TestCase):
             stream_callback=in_callback)
         out_stream = self.p.open(  # Blocking mode
             format=self.p.get_format_from_width(width),
-            channels=channels,
+            channels=2,
             rate=rate,
             output=True,
             frames_per_buffer=frames_per_chunk,
@@ -504,9 +509,8 @@ class StreamTests(unittest.TestCase):
     @unittest.skipIf(SKIP_HW_TESTS, 'Sound hardware required.')
     def test_get_stream_read_available_gil(self):
         """Ensure no deadlock between Pa_GetStreamReadAvailable and GIL."""
-        rate = 44100 # frames per second
-        width = 2    # bytes per sample
-        channels = 2
+        rate = 44100  # frames per second
+        width = 2  # bytes per sample
         frames_per_chunk = 1024
 
         def out_callback(in_data, frame_count, time_info, status):
@@ -516,14 +520,14 @@ class StreamTests(unittest.TestCase):
 
         in_stream = self.p.open(  # Blocking mode
             format=self.p.get_format_from_width(width),
-            channels=channels,
+            channels=self.input_channels,
             rate=rate,
             input=True,
             frames_per_buffer=frames_per_chunk,
             input_device_index=self.input_device)
         out_stream = self.p.open(
             format=self.p.get_format_from_width(width),
-            channels=channels,
+            channels=2,
             rate=rate,
             output=True,
             start=False,
