@@ -3,13 +3,15 @@
 .PHONY: docs clean build
 
 VERSION := 0.2.12
-PYTHON ?= python
-BUILD_ARGS ?=
+PYTHON ?= python3
 SPHINX ?= sphinx-build
-DOCS_OUTPUT=docs/
-PYTHON_BUILD_DIR:=$(shell $(PYTHON) -c "import distutils.util; import sys; print(f'{distutils.util.get_platform()}-{sys.version_info[0]}.{sys.version_info[1]}')")
-BUILD_DIR:=lib.$(PYTHON_BUILD_DIR)
-BUILD_STAMP:=$(BUILD_DIR)/build
+DOCS_OUTPUT = docs/
+# To build the docs, we need to first build the library. Hardcode the lib output
+# directory, since different versions of Python and setuptools use different
+# default directory names.
+BUILD_DIR := build/lib
+BUILD_STAMP := $(BUILD_DIR)/build
+BUILD_ARGS := --build-platlib $(BUILD_DIR)
 SRCFILES := src/pyaudio/*.c src/pyaudio/*.h src/pyaudio/*.py
 EXAMPLES := examples/*.py
 TESTS := tests/*.py
@@ -33,14 +35,14 @@ clean:
 # Documentation
 ######################################################################
 
-build: build/$(BUILD_STAMP)
+build: $(BUILD_STAMP)
 
-build/$(BUILD_STAMP): $(SRCFILES)
+$(BUILD_STAMP): $(SRCFILES)
 	$(PYTHON) setup.py build $(BUILD_ARGS)
 	touch $@
 
 docs: build
-	PYTHONPATH=build/$(BUILD_DIR) $(SPHINX) -b html sphinx/ $(DOCS_OUTPUT)
+	PYTHONPATH=$(BUILD_DIR) $(SPHINX) -b html sphinx/ $(DOCS_OUTPUT)
 
 ######################################################################
 # Source Tarball
