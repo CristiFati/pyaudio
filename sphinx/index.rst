@@ -22,12 +22,13 @@ Class PyAudio
 .. autoclass:: pyaudio.PyAudio
    :members:
    :special-members:
+   :exclude-members: Stream
 
-------------
-Class Stream
-------------
+--------------------
+Class PyAudio.Stream
+--------------------
 
-.. autoclass:: pyaudio.Stream
+.. autoclass:: pyaudio.PyAudio.Stream
    :members:
    :special-members:
 

@@ -1,22 +1,16 @@
-"""
-PyAudio Example: Mac OS X-only: Play a wave file with channel maps.
-"""
+"""PyAudio Example: macOS-only: Play a wave file with channel maps."""
 
-import pyaudio
 import wave
 import sys
 
-chunk = 1024
+import pyaudio
 
-PyAudio = pyaudio.PyAudio
+
+CHUNK = 1024
 
 if len(sys.argv) < 2:
-    print("Plays a wave file.\n\nUsage: %s filename.wav" % sys.argv[0])
+    print(f'Plays a wave file. Usage: {sys.argv[0]} filename.wav')
     sys.exit(-1)
-
-wf = wave.open(sys.argv[1], 'rb')
-
-p = PyAudio()
 
 # standard L-R stereo
 # channel_map = (0, 1)
@@ -39,36 +33,30 @@ p = PyAudio()
 # right channel audio --> left speaker
 channel_map = (1, -1)
 # etc...
-
 try:
     stream_info = pyaudio.PaMacCoreStreamInfo(
-        flags=pyaudio.PaMacCoreStreamInfo.paMacCorePlayNice, # default
+        flags=pyaudio.PaMacCoreStreamInfo.paMacCorePlayNice,
         channel_map=channel_map)
 except AttributeError:
-    print("Sorry, couldn't find PaMacCoreStreamInfo. Make sure that "
-          "you're running on Mac OS X.")
+    print(
+        'Could not find PaMacCoreStreamInfo. Ensure you are running on macOS.')
     sys.exit(-1)
 
-print("Stream Info Flags:", stream_info.get_flags())
-print("Stream Info Channel Map:", stream_info.get_channel_map())
+print('Stream Info Flags:', stream_info.flags)
+print('Stream Info Channel Map:', stream_info.channel_map)
 
-# open stream
-stream = p.open(
-    format=p.get_format_from_width(wf.getsampwidth()),
-    channels=wf.getnchannels(),
-    rate=wf.getframerate(),
-    output=True,
-    output_host_api_specific_stream_info=stream_info)
+with wave.open(sys.argv[1], 'rb') as wf:
+    p = pyaudio.PyAudio()
+    stream = p.open(
+        format=p.get_format_from_width(wf.getsampwidth()),
+        channels=wf.getnchannels(),
+        rate=wf.getframerate(),
+        output=True,
+        output_host_api_specific_stream_info=stream_info)
 
-# read data
-data = wf.readframes(chunk)
+    # Play stream
+    while len(data := wf.readframes(CHUNK)):  # Requires Python 3.8+ for :=
+        stream.write(data)
 
-# play stream
-while len(data):
-    stream.write(data)
-    data = wf.readframes(chunk)
-
-stream.stop_stream()
-stream.close()
-
-p.terminate()
+    stream.close()
+    p.terminate()

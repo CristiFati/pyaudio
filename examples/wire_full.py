@@ -1,40 +1,26 @@
-"""
-PyAudio Example: Make a wire between input and output (i.e., record a
-few samples and play them back immediately).
+"""PyAudio Example: full-duplex wire between input and output."""
 
-This is the full duplex version.
-"""
-
-import pyaudio
 import sys
 
-CHUNK = 1024
-WIDTH = 2
-CHANNELS = 2
-RATE = 44100
-RECORD_SECONDS = 5
+import pyaudio
 
-if sys.platform == 'darwin':
-    CHANNELS = 1
+
+RECORD_SECONDS = 5
+CHUNK = 1024
+RATE = 44100
 
 p = pyaudio.PyAudio()
-
-stream = p.open(format=p.get_format_from_width(WIDTH),
-                channels=CHANNELS,
+stream = p.open(format=p.get_format_from_width(2),
+                channels=1 if sys.platform == 'darwin' else 2,
                 rate=RATE,
                 input=True,
                 output=True,
                 frames_per_buffer=CHUNK)
 
-print("* recording")
-
+print('* recording')
 for i in range(0, int(RATE / CHUNK * RECORD_SECONDS)):
-    data = stream.read(CHUNK)
-    stream.write(data, CHUNK)
+    stream.write(stream.read(CHUNK))
+print('* done')
 
-print("* done")
-
-stream.stop_stream()
 stream.close()
-
 p.terminate()

@@ -4,9 +4,14 @@ import time
 import unittest
 
 import pyaudio
+import alsa_utils
 
 # To skip tests requiring hardware, set this environment variable:
 SKIP_HW_TESTS = 'PYAUDIO_SKIP_HW_TESTS' in os.environ
+
+setUpModule = alsa_utils.disable_error_handler_output
+tearDownModule = alsa_utils.disable_error_handler_output
+
 
 class PyAudioErrorTests(unittest.TestCase):
     def setUp(self):
@@ -57,7 +62,7 @@ class PyAudioErrorTests(unittest.TestCase):
         e = cm.exception
         self.assertEqual(e.args[0], pyaudio.paInvalidDevice)
 
-    @unittest.skipIf(SKIP_HW_TESTS, 'audio hardware required.')
+    @unittest.skipIf(SKIP_HW_TESTS, 'Hardware device required.')
     def test_error_without_stream_start(self):
         with self.assertRaises(IOError) as cm:
             stream = self.p.open(channels=1,
@@ -70,7 +75,7 @@ class PyAudioErrorTests(unittest.TestCase):
         e = cm.exception
         self.assertEqual(e.args[0], pyaudio.paStreamIsStopped)
 
-    @unittest.skipIf(SKIP_HW_TESTS, 'audio hardware required.')
+    @unittest.skipIf(SKIP_HW_TESTS, 'Hardware device required.')
     def test_error_writing_to_readonly_stream(self):
         with self.assertRaises(IOError) as cm:
             stream = self.p.open(channels=1,
@@ -82,7 +87,7 @@ class PyAudioErrorTests(unittest.TestCase):
         e = cm.exception
         self.assertEqual(e.args[1], pyaudio.paCanNotWriteToAnInputOnlyStream)
 
-    @unittest.skipIf(SKIP_HW_TESTS, 'audio hardware required.')
+    @unittest.skipIf(SKIP_HW_TESTS, 'Hardware device required.')
     def test_error_negative_frames(self):
         with self.assertRaises(ValueError):
             stream = self.p.open(channels=1,
@@ -91,7 +96,7 @@ class PyAudioErrorTests(unittest.TestCase):
                                  input=True)
             stream.read(-1)
 
-    @unittest.skipIf(SKIP_HW_TESTS, 'audio hardware required.')
+    @unittest.skipIf(SKIP_HW_TESTS, 'Hardware device required.')
     def test_invalid_attr_on_closed_stream(self):
         stream = self.p.open(channels=1,
                              rate=44100,
@@ -119,10 +124,17 @@ class PyAudioErrorTests(unittest.TestCase):
         e = cm.exception
         self.assertEqual(e.args[1], pyaudio.paInvalidChannelCount)
 
+        with self.assertRaises(ValueError) as cm:
+            self.p.is_format_supported(8000,
+                                       input_device=None,
+                                       output_device=None)
+        e = cm.exception
+        self.assertEqual(e.args[1], pyaudio.paInvalidDevice)
+
     # It's difficult to invoke an underflow on ALSA, so skip.
     @unittest.skipIf('linux' in sys.platform,
                      'skipping underflow test on linux.')
-    @unittest.skipIf(SKIP_HW_TESTS, 'audio hardware required.')
+    @unittest.skipIf(SKIP_HW_TESTS, 'Hardware device required.')
     def test_write_underflow_exception(self):
         stream = self.p.open(channels=1,
                              rate=44100,
@@ -143,7 +155,7 @@ class PyAudioErrorTests(unittest.TestCase):
     # It's difficult to invoke an underflow on ALSA, so skip.
     @unittest.skipIf('linux' in sys.platform,
                      'skipping underflow test on linux.')
-    @unittest.skipIf(SKIP_HW_TESTS, 'audio hardware required.')
+    @unittest.skipIf(SKIP_HW_TESTS, 'Hardware device required.')
     def test_read_overflow_exception(self):
         stream = self.p.open(channels=1,
                              rate=44100,

@@ -1,47 +1,29 @@
-"""
-PyAudio example: Record a few seconds of audio and save to a WAVE
-file.
-"""
+"""PyAudio Example: Record a few seconds of audio and save to a wave file."""
 
-import pyaudio
 import wave
 import sys
 
+import pyaudio
+
+
 CHUNK = 1024
 FORMAT = pyaudio.paInt16
-CHANNELS = 2
+CHANNELS = 1 if sys.platform == 'darwin' else 2
 RATE = 44100
 RECORD_SECONDS = 5
-WAVE_OUTPUT_FILENAME = "output.wav"
 
-if sys.platform == 'darwin':
-    CHANNELS = 1
+with wave.open('output.wav', 'wb') as wf:
+    p = pyaudio.PyAudio()
+    wf.setnchannels(CHANNELS)
+    wf.setsampwidth(p.get_sample_size(FORMAT))
+    wf.setframerate(RATE)
 
-p = pyaudio.PyAudio()
+    stream = p.open(format=FORMAT, channels=CHANNELS, rate=RATE, input=True)
 
-stream = p.open(format=FORMAT,
-                channels=CHANNELS,
-                rate=RATE,
-                input=True,
-                frames_per_buffer=CHUNK)
+    print('Recording...')
+    for _ in range(0, RATE // CHUNK * RECORD_SECONDS):
+        wf.writeframes(stream.read(CHUNK))
+    print('Done')
 
-print("* recording")
-
-frames = []
-
-for i in range(0, int(RATE / CHUNK * RECORD_SECONDS)):
-    data = stream.read(CHUNK)
-    frames.append(data)
-
-print("* done recording")
-
-stream.stop_stream()
-stream.close()
-p.terminate()
-
-wf = wave.open(WAVE_OUTPUT_FILENAME, 'wb')
-wf.setnchannels(CHANNELS)
-wf.setsampwidth(p.get_sample_size(FORMAT))
-wf.setframerate(RATE)
-wf.writeframes(b''.join(frames))
-wf.close()
+    stream.close()
+    p.terminate()

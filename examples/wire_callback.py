@@ -1,42 +1,27 @@
-"""
-PyAudio Example: Make a wire between input and output (i.e., record a
-few samples and play them back immediately).
+"""PyAudio Example: Audio wire between input and output. Callback version."""
 
-This is the callback (non-blocking) version.
-"""
-
-import pyaudio
 import time
 import sys
 
-WIDTH = 2
-CHANNELS = 2
-RATE = 44100
-DURATION = 5
+import pyaudio
 
-if sys.platform == 'darwin':
-    CHANNELS = 1
 
-p = pyaudio.PyAudio()
+DURATION = 5  # seconds
 
 def callback(in_data, frame_count, time_info, status):
     return (in_data, pyaudio.paContinue)
 
-stream = p.open(format=p.get_format_from_width(WIDTH),
-                channels=CHANNELS,
-                rate=RATE,
+p = pyaudio.PyAudio()
+stream = p.open(format=p.get_format_from_width(2),
+                channels=1 if sys.platform == 'darwin' else 2,
+                rate=44100,
                 input=True,
                 output=True,
                 stream_callback=callback)
 
-stream.start_stream()
-
 start = time.time()
-
 while stream.is_active() and (time.time() - start) < DURATION:
     time.sleep(0.1)
 
-stream.stop_stream()
 stream.close()
-
 p.terminate()

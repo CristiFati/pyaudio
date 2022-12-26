@@ -32,7 +32,7 @@ import platform
 from setuptools import setup, Extension
 import sys
 
-__version__ = "0.2.12"
+__version__ = "0.2.13"
 
 # setup.py/setuptools will try to locate and link dynamically against portaudio,
 # except on Windows. On Windows, setup.py will attempt to statically link in
@@ -48,7 +48,17 @@ MAC_SYSROOT_PATH = os.environ.get("SYSROOT_PATH", None)
 WIN_VCPKG_PATH = os.environ.get("VCPKG_PATH", None)
 
 def setup_extension():
-    pyaudio_module_sources = ['src/_portaudiomodule.c']
+    pyaudio_module_sources = [
+        'src/pyaudio/main.c',
+        'src/pyaudio/device_api.c',
+        'src/pyaudio/host_api.c',
+        'src/pyaudio/init.c',
+        'src/pyaudio/mac_core_stream_info.c',
+        'src/pyaudio/misc.c',
+        'src/pyaudio/stream.c',
+        'src/pyaudio/stream_io.c',
+        'src/pyaudio/stream_lifecycle.c',
+    ]
     include_dirs = []
     external_libraries = ["portaudio"]
     external_libraries_path = []
@@ -60,10 +70,16 @@ def setup_extension():
         # Support only dynamic linking with portaudio, since the supported path
         # is to install portaudio using a package manager (e.g., Homebrew).
         # TODO: let users pass in location of portaudio library on command line.
-        defines += [('MACOSX', '1')]
+        defines += [('MACOS', '1')]
 
-        include_dirs += ['/usr/local/include', '/usr/include']
-        external_libraries_path += ['/usr/local/lib', '/usr/lib']
+        include_dirs += [
+            '/usr/local/include', '/usr/include', '/opt/homebrew/include'
+        ]
+        external_libraries_path += [
+            path
+            for path in ('/usr/local/lib', '/usr/lib', '/opt/homebrew/lib')
+            if os.path.exists(path)
+        ]
 
         if MAC_SYSROOT_PATH:
             extra_compile_args += ["-isysroot", MAC_SYSROOT_PATH]
@@ -102,7 +118,7 @@ def setup_extension():
         external_libraries_path += ['/usr/local/lib', '/usr/lib']
 
     return Extension(
-        '_portaudio',
+        'pyaudio._portaudio',
         sources=pyaudio_module_sources,
         include_dirs=include_dirs,
         define_macros=defines,
@@ -126,7 +142,7 @@ setup(
     long_description_content_type='text/markdown',
     license="MIT",
     scripts=[],
-    py_modules=['pyaudio'],
+    packages=['pyaudio'],
     package_dir={'': 'src'},
     extras_require={
         "test": ["numpy"],

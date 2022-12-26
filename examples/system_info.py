@@ -1,134 +1,127 @@
-"""
-PyAudio Example:
-
-Query and print PortAudio HostAPIs, Devices, and their
-support rates.
-"""
+"""PyAudio Example: Query PortAudio Host APIs, devices, and supported rates."""
 
 import pyaudio
 
-standard_sample_rates = [8000.0, 9600.0, 11025.0, 12000.0,
-                         16000.0, 22050.0, 24000.0, 32000.0,
-                         44100.0, 48000.0, 88200.0, 96000.0,
-                         192000.0]
 
-p = pyaudio.PyAudio()
-max_apis = p.get_host_api_count()
-max_devs = p.get_device_count()
+STANDARD_SAMPLE_RATES = [
+    8000.0, 9600.0, 11025.0, 12000.0, 16000.0, 22050.0, 24000.0, 32000.0,
+    44100.0, 48000.0, 88200.0, 96000.0, 192000.0
+]
 
-print("\nPortAudio System Info:\n======================")
-print("Version: %d" % pyaudio.get_portaudio_version())
-print("Version Text: %s" % pyaudio.get_portaudio_version_text())
-print("Number of Host APIs: %d" % max_apis)
-print("Number of Devices  : %d" % max_devs)
 
-print("\nHost APIs:\n==========")
+def print_header(header):
+    print()
+    print(header)
+    print("=" * len(header))
 
-for i in range(max_apis):
-    apiinfo = p.get_host_api_info_by_index(i)
-    for k in list(apiinfo.items()):
-        print("%s: %s" % k)
-    print("--------------------------")
 
-print("\nDevices:\n========")
-
-for i in range(max_devs):
-    devinfo = p.get_device_info_by_index(i)
-
-    # print out device parameters
-    for k in list(devinfo.items()):
-        name, value = k
-
-        # if host API, then get friendly name
-
-        if name == 'hostApi':
-            value = str(value) + \
-                    " (%s)" % p.get_host_api_info_by_index(k[1])['name']
-
+def print_device_info(p, device_info):
+    for name, value in device_info.items():
+        # If host API, value is an index, so also print the friendly name.
+        if name == "hostApi":
+            value = f"{value} ({p.get_host_api_info_by_index(value)['name']})"
         # Crashing?  See http://stackoverflow.com/a/5146914
-        print("\t%s: %s" % (name, value))
+        print(f"{name}: {value}")
 
-    # print out supported format rates
-
+    # Print supported format rates
     input_supported_rates = []
     output_supported_rates = []
     full_duplex_rates = []
 
-    for f in standard_sample_rates:
-
-        if devinfo['maxInputChannels'] > 0:
+    for rate in STANDARD_SAMPLE_RATES:
+        if device_info["maxInputChannels"] > 0:
             try:
                 if p.is_format_supported(
-                    f,
-                    input_device = devinfo['index'],
-                    input_channels = devinfo['maxInputChannels'],
-                    input_format = pyaudio.paInt16):
-                    input_supported_rates.append(f)
+                        rate,
+                        input_device=device_info["index"],
+                        input_channels=device_info["maxInputChannels"],
+                        input_format=pyaudio.paInt16):
+                    input_supported_rates.append(rate)
             except ValueError:
                 pass
 
-        if devinfo['maxOutputChannels'] > 0:
+        if device_info["maxOutputChannels"] > 0:
             try:
                 if p.is_format_supported(
-                    f,
-                    output_device = devinfo['index'],
-                    output_channels = devinfo['maxOutputChannels'],
-                    output_format = pyaudio.paInt16):
-                    output_supported_rates.append(f)
+                        rate,
+                        output_device=device_info["index"],
+                        output_channels=device_info["maxOutputChannels"],
+                        output_format=pyaudio.paInt16):
+                    output_supported_rates.append(rate)
             except ValueError:
                 pass
 
-        if (devinfo['maxInputChannels'] > 0) and \
-           (devinfo['maxOutputChannels'] > 0):
+        if (device_info["maxInputChannels"] > 0
+                and device_info["maxOutputChannels"] > 0):
             try:
                 if p.is_format_supported(
-                    f,
-                    input_device = devinfo['index'],
-                    input_channels = devinfo['maxInputChannels'],
-                    input_format = pyaudio.paInt16,
-                    output_device = devinfo['index'],
-                    output_channels = devinfo['maxOutputChannels'],
-                    output_format = pyaudio.paInt16):
-                    full_duplex_rates.append(f)
+                        rate,
+                        input_device=device_info["index"],
+                        input_channels=device_info["maxInputChannels"],
+                        input_format=pyaudio.paInt16,
+                        output_device=device_info["index"],
+                        output_channels=device_info["maxOutputChannels"],
+                        output_format=pyaudio.paInt16):
+                    full_duplex_rates.append(rate)
             except ValueError:
                 pass
 
-    if len(input_supported_rates):
-        print("\tInput rates: %s" % input_supported_rates)
-    if len(output_supported_rates):
-        print("\tOutput rates: %s" % output_supported_rates)
-    if len(full_duplex_rates):
-        print("\tFull duplex: %s" % full_duplex_rates)
+    if input_supported_rates:
+        print(f"Input rates: {input_supported_rates}")
+    if output_supported_rates:
+        print(f"Output rates: {output_supported_rates}")
+    if full_duplex_rates:
+        print(f"Full duplex rates: {full_duplex_rates}")
+    print("-" * 32)
 
-    print("\t--------------------------------")
 
-print("\nDefault Devices:\n================")
-try:
-    def_index = p.get_default_input_device_info()['index']
-    print("Default Input Device : %s" % def_index)
-    devinfo = p.get_device_info_by_index(def_index)
-    for k in list(devinfo.items()):
-        name, value = k
-        if name == 'hostApi':
-            value = str(value) + \
-                    " (%s)" % p.get_host_api_info_by_index(k[1])['name']
-        print("\t%s: %s" % (name, value))
-    print("\t--------------------------------")
-except IOError as e:
-    print("No Input devices: %s" % e[0])
+def print_system_info(p):
+    print_header("PortAudio System Info")
+    print(f"Version: {pyaudio.get_portaudio_version()}")
+    print(f"Version Text: {pyaudio.get_portaudio_version_text()}")
+    print(f"Number of Host APIs: {p.get_host_api_count()}")
+    print(f"Number of Devices: {p.get_device_count()}")
 
-try:
-    def_index = p.get_default_output_device_info()['index']
-    print("Default Output Device: %s" % def_index)
-    devinfo = p.get_device_info_by_index(def_index)
-    for k in list(devinfo.items()):
-        name, value = k
-        if name == 'hostApi':
-            value = str(value) + \
-                    " (%s)" % p.get_host_api_info_by_index(k[1])['name']
-        print("\t%s: %s" % (name, value))
-    print("\t--------------------------------")
-except IOError as e:
-    print("No Output devices: %s" % e[0])
 
-p.terminate()
+def print_all_host_apis(p):
+    print_header("Host APIs")
+    for i in range(p.get_host_api_count()):
+        for key, value in p.get_host_api_info_by_index(i).items():
+            print(f"{key}: {value}")
+        print("-" * 26)
+
+
+def print_all_device_infos(p):
+    print_header("Devices")
+    for i in range(p.get_device_count()):
+        print_device_info(p, p.get_device_info_by_index(i))
+
+
+def print_default_devices(p):
+    print_header("Default Devices")
+    try:
+        device_info = p.get_default_input_device_info()
+    except IOError as err:
+        print(f"No Input devices: {err}")
+    else:
+        print(f"Default Input Device: {device_info['index']}")
+        print_device_info(p, device_info)
+
+    try:
+        device_info = p.get_default_output_device_info()
+    except IOError as err:
+        print(f"No Output devices: {err}")
+    else:
+        print(f"Default Output Device: {device_info['index']}")
+        print_device_info(p, device_info)
+
+
+if __name__ == "__main__":
+    p = pyaudio.PyAudio()
+
+    print_system_info(p)
+    print_all_host_apis(p)
+    print_all_device_infos(p)
+    print_default_devices(p)
+
+    p.terminate()
