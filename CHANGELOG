@@ -1,3 +1,12 @@
+2023-11-04  Hubert Pham  <hubert@mit.edu>
+
+  PyAudio 0.2.14
+
+  * Fix installation breakage.
+    Removes specific version requirement for setuptools in pyproject.toml.
+
+  * Various cosmetic fixes.
+
 2022-12-26  Hubert Pham  <hubert@mit.edu>
 
   PyAudio 0.2.13
