@@ -25,7 +25,6 @@ static PyObject *get_structVersion(PyAudioStream *self, void *closure) {
     PyErr_SetObject(PyExc_IOError,
                     Py_BuildValue("(i,s)", paInternalError,
                                   "Could not get stream information"));
-
     return NULL;
   }
 
@@ -44,7 +43,6 @@ static PyObject *get_inputLatency(PyAudioStream *self, void *closure) {
     PyErr_SetObject(PyExc_IOError,
                     Py_BuildValue("(i,s)", paInternalError,
                                   "Could not get stream information"));
-
     return NULL;
   }
 
@@ -63,7 +61,6 @@ static PyObject *get_outputLatency(PyAudioStream *self, void *closure) {
     PyErr_SetObject(PyExc_IOError,
                     Py_BuildValue("(i,s)", paInternalError,
                                   "Could not get stream information"));
-
     return NULL;
   }
 
@@ -82,7 +79,6 @@ static PyObject *get_sampleRate(PyAudioStream *self, void *closure) {
     PyErr_SetObject(PyExc_IOError,
                     Py_BuildValue("(i,s)", paInternalError,
                                   "Could not get stream information"));
-
     return NULL;
   }
 
