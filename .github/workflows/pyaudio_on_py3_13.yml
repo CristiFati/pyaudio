@@ -1,0 +1,38 @@
+# A GitHub Action to demonstrate how to run pyaudio on Python 3.13 before its release in Oct. 2024
+
+name: pyaudio_on_py3_13
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+jobs:
+  pyaudio_on_py3_13:
+    strategy:
+      fail-fast: false
+      matrix:
+        # https://github.com/CristiFati/pyaudio/blob/master/INSTALL
+        os: [macos-latest, ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: 3.13
+          allow-prereleases: true
+      - if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install --yes portaudio19-dev # libasound-dev python3-pyaudio
+      - if: runner.os == 'macOS'
+        run: |
+          brew install portaudio
+      - if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          systeminfo || true
+          vcpkg install portaudio:x86-windows-static
+          vcpkg install portaudio:x64-windows-static
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install pyaudio
