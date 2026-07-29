@@ -1,0 +1,39 @@
+# A GitHub Action to demonstrate how to run pyaudio on Python 3.13 on Windows 11 on ARM.
+# A GitHub Action to demonstrate how to run pyaudio on Python 3.14 before its release in Oct. 2024
+name: pip_install_pyaudio
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+jobs:
+  pip_install_pyaudio:
+    strategy:
+      fail-fast: false
+      matrix:  # https://github.com/CristiFati/pyaudio/blob/master/INSTALL
+        # macos-26-intel on Intel, macos-latest on Apple Silicon ARM
+        os: [macos-26-intel, macos-latest, ubuntu-latest, ubuntu-26.04-arm, windows-latest, windows-11-arm]
+        python-version: [3.13, 3.14, 3.15]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: ${{ matrix.python-version }}
+          allow-prereleases: true
+      - if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install --yes portaudio19-dev # libasound-dev python3-pyaudio
+      - if: runner.os == 'macOS'
+        run: |
+          brew install portaudio
+      - if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          systeminfo || true
+          vcpkg install portaudio:x86-windows-static
+          vcpkg install portaudio:x64-windows-static
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pyaudio
